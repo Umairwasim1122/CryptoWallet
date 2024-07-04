@@ -7,7 +7,7 @@ import {
   ButtonIcon,
   Heading,
   ImageBackground,
-  IconButton,
+  Toast,
 } from '@gluestack-ui/themed';
 import {
   HEIGHT_BASE_RATIO,
@@ -16,11 +16,22 @@ import {
 } from '../../../buisnessLogics/utils/helpers';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {ArrowLeft, ArrowRight, Copy} from 'lucide-react-native';
-import * as bip39 from 'bip39';
+import {ethers} from 'ethers';
 import 'react-native-get-random-values';
-import {Buffer} from 'buffer';
 
-global.Buffer = Buffer;
+const generateWallet = async () => {
+  const wallet = ethers.Wallet.createRandom();
+  const mnemonic = wallet.mnemonic.phrase;
+  const words = mnemonic.split(' ');
+  const numberedWords = words.map((word, index) => `${index + 1}. ${word}`);
+
+  return {
+    mnemonic,
+    numberedWords,
+    privateKey: wallet.privateKey,
+    address: wallet.address,
+  };
+};
 
 const Verification = () => {
   const route = useRoute();
@@ -28,28 +39,27 @@ const Verification = () => {
   const {numWords} = route.params;
   const [mnemonic, setMnemonic] = useState('');
   const [numberedMnemonic, setNumberedMnemonic] = useState([]);
+  const [privateKey, setPrivateKey] = useState('');
+  const [address, setAddress] = useState('');
 
   useEffect(() => {
-    const generateMnemonic = async () => {
-      let strength;
-      if (numWords === 12) {
-        strength = 128;
-      } else if (numWords === 24) {
-        strength = 256;
-      } else {
-        console.error('Invalid number of words. Use 12 or 24.');
-        return;
+    const initializeWallet = async () => {
+      try {
+        const {mnemonic, numberedWords, privateKey, address} =
+          await generateWallet();
+        setMnemonic(mnemonic);
+        setNumberedMnemonic(numberedWords);
+        setPrivateKey(privateKey);
+        setAddress(address);
+        console.log('Mnemonic:', mnemonic);
+        console.log('Private Key:', privateKey);
+        console.log('Address:', address);
+      } catch (error) {
+        console.error(error.message);
       }
-      const mnemonic = bip39.generateMnemonic(strength);
-      setMnemonic(mnemonic);
-      const words = mnemonic.split(' ');
-      const numberedWords = words.map((word, index) => `${index + 1}. ${word}`);
-      setNumberedMnemonic(numberedWords);
-      console.log(mnemonic);
     };
-
-    generateMnemonic();
-  }, [numWords]);
+    initializeWallet();
+  }, []);
 
   const backbutton = () => {
     navigation.navigate('Signup');
@@ -58,8 +68,9 @@ const Verification = () => {
   const copyToClipboard = () => {
     Clipboard.setString(mnemonic);
   };
+
   const Nextbutton = () => {
-    navigation.navigate('verifycode');
+    navigation.navigate('BottomTabs');
   };
   return (
     <Box style={{flex: 1}}>
@@ -95,7 +106,8 @@ const Verification = () => {
           </Box>
         </Box>
         <Box
-          style={{height:HEIGHT_BASE_RATIO(130),
+          style={{
+            height: HEIGHT_BASE_RATIO(130),
             justifyContent: 'center',
             alignItems: 'center',
           }}>
@@ -113,28 +125,31 @@ const Verification = () => {
             textAlign="center"
             color="#D2B48C"
             style={{fontSize: FONT_SIZE(15), fontWeight: '800'}}>
-            This is your seed {numWords} word phrase. You will be asked to
-            reenter this phrase in a correct order on the next step.
+            This is your {numWords}-word seed phrase. You will be asked to
+            reenter this phrase in the correct order on the next step.
           </Heading>
         </Box>
-        <Box style={{padding: 20,}}>
+        <Box style={{padding: 20}}>
           <Box style={styles.gridContainer}>
             {numberedMnemonic.map((word, index) => (
               <Box key={index} style={styles.gridItem}>
-                <Text >{word}</Text>
+                <Text>{word}</Text>
               </Box>
             ))}
           </Box>
         </Box>
         <Box style={styles.copyButtonContainer}>
-          <Button 
+          <Button
             size={'xs'}
             onPress={copyToClipboard}
             style={styles.copyButton}>
             <ButtonIcon as={Copy} color="#FFF" />
           </Button>
         </Box>
-        <Box position='absolute' top={HEIGHT_BASE_RATIO(720)} left={WIDTH_BASE_RATIO(300)}
+        <Box
+          position="absolute"
+          top={HEIGHT_BASE_RATIO(720)}
+          left={WIDTH_BASE_RATIO(300)}
           paddingHorizontal={'5%'}
           justifyContent="center"
           alignItems="flex-end">
@@ -146,6 +161,10 @@ const Verification = () => {
             <ButtonIcon size="md" as={ArrowRight}></ButtonIcon>
           </Button>
         </Box>
+        {/* <Box style={styles.walletInfoContainer}>
+          <Text style={styles.walletInfo}>Private Key: {privateKey}</Text>
+          <Text style={styles.walletInfo}>Address: {address}</Text>
+        </Box> */}
       </ImageBackground>
     </Box>
   );
@@ -168,9 +187,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   copyButtonContainer: {
-    marginHorizontal:'4.5%',
-     alignItems: 'flex-end',
-     marginBottom:20
+    marginHorizontal: '4.5%',
+    alignItems: 'flex-end',
+    marginBottom: 20,
   },
   copyButton: {
     flexDirection: 'row',
@@ -181,5 +200,13 @@ const styles = StyleSheet.create({
   copyButtonText: {
     color: '#FFF',
     marginLeft: 5,
+  },
+  walletInfoContainer: {
+    paddingHorizontal: '5%',
+    marginVertical: 20,
+  },
+  walletInfo: {
+    fontSize: 14,
+    color: '#000',
   },
 });

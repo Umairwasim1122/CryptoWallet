@@ -21,9 +21,15 @@ import {
 } from '../../../buisnessLogics/utils/helpers';
 import {useNavigation} from '@react-navigation/native';
 import {ArrowLeft, Eye, ArrowRight, EyeOff} from 'lucide-react-native';
-
+import { useDispatch } from 'react-redux';
+import {
+  setWalletName,
+  setPassword,
+  setConfirmPassword,
+} from '../../../buisnessLogics/redux/slice/UserSlice';
 const Signup = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const [walletName, setWalletName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -63,12 +69,12 @@ const Signup = () => {
     //   console.log('Confirm Password:', confirmPassword);
     //   console.log('Terms Accepted:', checked);
     //   // Perform signup logic here
-
-    //   // Navigate to the next screen after successful signup logic
-    //   navigation.navigate('Set2fa');
-    // }
+    // dispatch(setWalletName(walletName));
+    // dispatch(setPassword(password));
+    // dispatch(setConfirmPassword(confirmPassword));
     navigation.navigate('SecureAccount');
-  };
+    // }
+   };
 
   const backbutton = () => {
     navigation.navigate('CreateAccount');

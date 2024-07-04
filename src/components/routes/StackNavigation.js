@@ -8,6 +8,7 @@ import Signup from '../../screens/authentication/login/Signup';
 import Restore from '../../screens/authentication/login/Restore';
 import SecureAccount from '../../screens/authentication/login/SecureAccount';
 import VerifyCode from '../../screens/authentication/verification/VerifyCode';
+import Home from '../../screens/dashboard/Home/Home';
 const Stack = createStackNavigator();
 
 function MyStack() {
@@ -17,9 +18,9 @@ function MyStack() {
       <Stack.Screen name="Signup" component={Signup} />
       <Stack.Screen name="SecureAccount" component={SecureAccount} />
       <Stack.Screen name="Create2fa" component={Verification} />
+      <Stack.Screen name="BottomTabs" component={BottomTabNavigator} />
       <Stack.Screen name="verifycode" component={VerifyCode} />
       <Stack.Screen name="Restore" component={Restore}/>
-      <Stack.Screen name="BottomTabs" component={BottomTabNavigator} />
     </Stack.Navigator>
   );
 }

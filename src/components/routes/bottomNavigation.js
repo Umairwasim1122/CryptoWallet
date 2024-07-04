@@ -23,7 +23,7 @@ function MainTabNavigator() {
           tabBarActiveTintColor: "#FFFF",
           tabBarInactiveTintColor: "#B9B9B9",
           tabBarStyle: {
-            backgroundColor: "#3F6DFD",
+            backgroundColor: "#D66B00",
             height: 70,
             width: "100%",
           },
