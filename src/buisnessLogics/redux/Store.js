@@ -1,11 +1,28 @@
-// store.js
 import { configureStore } from '@reduxjs/toolkit';
-import userReducer from "../redux/slice/UserSlice";
+import { persistStore, persistReducer } from 'redux-persist';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Use AsyncStorage for React Native
+import walletReducer from "./slice/Walletdata";
+import { combineReducers } from 'redux';
 
-const store = configureStore({
-  reducer: {
-    user: userReducer,
-  },
+const persistConfig = {
+  key: 'root',
+  storage: AsyncStorage,
+};
+
+const rootReducer = combineReducers({
+  wallet: walletReducer,
 });
 
-export default store;
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+const store = configureStore({
+  reducer: persistedReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
+});
+
+const persistor = persistStore(store);
+
+export { store, persistor };

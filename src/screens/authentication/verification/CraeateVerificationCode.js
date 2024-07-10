@@ -18,6 +18,12 @@ import {useNavigation, useRoute} from '@react-navigation/native';
 import {ArrowLeft, ArrowRight, Copy} from 'lucide-react-native';
 import {ethers} from 'ethers';
 import 'react-native-get-random-values';
+import {useDispatch} from 'react-redux';
+import {
+  setUserAddress,
+  setUserMnemonics,
+  setUserPrivateKey,
+} from '../../../buisnessLogics/redux/slice/Walletdata';
 
 const generateWallet = async () => {
   const wallet = ethers.Wallet.createRandom();
@@ -35,6 +41,7 @@ const generateWallet = async () => {
 
 const Verification = () => {
   const route = useRoute();
+  const dispatch = useDispatch();
   const navigation = useNavigation();
   const {numWords} = route.params;
   const [mnemonic, setMnemonic] = useState('');
@@ -70,8 +77,15 @@ const Verification = () => {
   };
 
   const Nextbutton = () => {
-    navigation.navigate('BottomTabs');
+    dispatch(setUserAddress(address));
+    dispatch(setUserMnemonics(mnemonic));
+    dispatch(setUserPrivateKey(privateKey));
+    navigation.navigate('Home', {
+      privateKey,
+      address,
+    });
   };
+
   return (
     <Box style={{flex: 1}}>
       <ImageBackground
@@ -89,7 +103,7 @@ const Verification = () => {
               width={WIDTH_BASE_RATIO(80)}
               onPress={backbutton}
               style={{backgroundColor: '#FFFF'}}>
-              <ButtonIcon as={ArrowLeft} color="#D66B00"></ButtonIcon>
+              <ButtonIcon as={ArrowLeft} color="#D66B00" />
             </Button>
           </Box>
           <Box
@@ -121,7 +135,7 @@ const Verification = () => {
             SAVE YOUR BACKUP PHRASE
           </Heading>
           <Heading
-            paddingHorizontal={'5%'}
+            paddingHorizontal="5%"
             textAlign="center"
             color="#D2B48C"
             style={{fontSize: FONT_SIZE(15), fontWeight: '800'}}>
@@ -139,10 +153,7 @@ const Verification = () => {
           </Box>
         </Box>
         <Box style={styles.copyButtonContainer}>
-          <Button
-            size={'xs'}
-            onPress={copyToClipboard}
-            style={styles.copyButton}>
+          <Button size="xs" onPress={copyToClipboard} style={styles.copyButton}>
             <ButtonIcon as={Copy} color="#FFF" />
           </Button>
         </Box>
@@ -150,7 +161,7 @@ const Verification = () => {
           position="absolute"
           top={HEIGHT_BASE_RATIO(720)}
           left={WIDTH_BASE_RATIO(300)}
-          paddingHorizontal={'5%'}
+          paddingHorizontal="5%"
           justifyContent="center"
           alignItems="flex-end">
           <Button
@@ -158,7 +169,7 @@ const Verification = () => {
             size="md"
             borderRadius={10}
             onPress={Nextbutton}>
-            <ButtonIcon size="md" as={ArrowRight}></ButtonIcon>
+            <ButtonIcon size="md" as={ArrowRight} />
           </Button>
         </Box>
         {/* <Box style={styles.walletInfoContainer}>

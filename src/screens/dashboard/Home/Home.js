@@ -1,12 +1,11 @@
 import {StyleSheet, Text, View} from 'react-native';
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   Box,
   Button,
   ButtonIcon,
   Heading,
   ImageBackground,
-  IconButton,
   ButtonText,
 } from '@gluestack-ui/themed';
 import {
@@ -14,16 +13,56 @@ import {
   WIDTH_BASE_RATIO,
   FONT_SIZE,
 } from '../../../buisnessLogics/utils/helpers';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import {ArrowBigLeft, ArrowDownCircleIcon, ArrowLeft, ArrowRight, ArrowUp, ArrowUpCircleIcon, Copy} from 'lucide-react-native';
+import {useNavigation} from '@react-navigation/native';
+import axios from 'axios'; // Import Axios
+import {ArrowUpCircleIcon, ArrowDownCircleIcon} from 'lucide-react-native';
+import {useDispatch, useSelector} from 'react-redux';
+import {setWalletBalance} from '../../../buisnessLogics/redux/slice/Walletdata';
+import TransactionHistory from '../../../components/common/Transactionistory';
 const Home = () => {
-  const route = useRoute();
+  const dispatch = useDispatch();
   const navigation = useNavigation();
-  const backbutton = () => {
-    navigation.navigate('Signup');
-  };
   const username = 'Umair Ahmed';
-  const balance = '10  ETH';
+  const sendButton = () => {
+    navigation.navigate('Send');
+  };
+
+  const address = useSelector(state => state.wallet.address);
+  const receiveButton = () => {
+    console.log('Receive Button pressed');
+    navigation.navigate('Receive', {});
+  };
+  const [balance, setBalance] = useState('Loading...');
+
+  // Function to fetch balance
+  const fetchBalance = async () => {
+    try {
+      const response = await axios.post(
+        'https://sepolia.infura.io/v3/7aae9efdf2944cb2abd77d6d04a34b5b',
+        {
+          jsonrpc: '2.0',
+          method: 'eth_getBalance',
+          params: [address, 'latest'],
+          id: 1,
+        },
+      );
+      const ethBalance = parseInt(response.data.result, 16) / 1e18; // Convert from wei to ETH
+      setBalance(`${ethBalance} ETH`);
+      dispatch(setWalletBalance(`${ethBalance} ETH`)); // Dispatch action to set balance in Redux store
+      console.log('balance ', balance);
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchBalance(); // Fetch balance on component mount
+  }, []);
+
   return (
     <Box style={{flex: 1}}>
       <ImageBackground
@@ -37,14 +76,6 @@ const Home = () => {
             justifyContent: 'center',
             flexDirection: 'row',
           }}>
-          {/* <Box style={{flex: 0.3}}>
-            <Button
-              width={WIDTH_BASE_RATIO(80)}
-              onPress={backbutton}
-              style={{backgroundColor: '#FFFF'}}>
-              <ButtonIcon as={ArrowLeft} color="#D66B00"></ButtonIcon>
-            </Button>
-          </Box> */}
           <Box
             style={{
               flex: 0.45,
@@ -73,7 +104,7 @@ const Home = () => {
           </Box>
           <Box>
             <Heading style={{fontSize: FONT_SIZE(18), color: '#D66B00'}}>
-              Toatal Balance
+              Total Balance
             </Heading>
           </Box>
           <Box>
@@ -82,16 +113,58 @@ const Home = () => {
             </Heading>
           </Box>
         </Box>
-        <Box style={{flexDirection: 'row', justifyContent: 'space-evenly',marginTop:20}}>
-          <Button backgroundColor='#D66B00' size={'xl'} paddingTop={8} flexDirection='column'>
-            <ButtonIcon  as={ArrowUpCircleIcon}></ButtonIcon>
+        <Box
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-evenly',
+            marginTop: 20,
+          }}>
+          <Button
+            onPress={sendButton}
+            backgroundColor="#D66B00"
+            size="xl"
+            paddingTop={8}
+            flexDirection="column">
+            <ButtonIcon as={ArrowUpCircleIcon} />
             <ButtonText fontSize={FONT_SIZE(14)}>Send</ButtonText>
           </Button>
-          <Button backgroundColor='#D66B00' size={'xl'} paddingTop={8} flexDirection='column'>
-            <ButtonIcon as={ArrowDownCircleIcon}></ButtonIcon>
+          <Button
+            onPress={receiveButton}
+            size="xl"
+            variant="solid"
+            backgroundColor="#D66B00"
+            paddingTop={8}
+            flexDirection="column">
+            <ButtonIcon as={ArrowDownCircleIcon} />
             <ButtonText fontSize={FONT_SIZE(14)}>Receive</ButtonText>
           </Button>
         </Box>
+        <Box
+          style={{
+            width: '90%',
+            marginHorizontal: '5%',
+            borderRadius: 20,
+            padding: 5,
+            flexDirection: 'row',
+            justifyContent: 'center',
+          }}>
+          <Heading fontSize={16}>Adress: </Heading>
+          <Heading
+            paddingHorizontal={5}
+            borderRadius={20}
+            textAlign="center"
+            fontSize={12}>
+            {address}
+          </Heading>
+        </Box>
+
+        <Box
+          style={{
+            backgroundColor: '#D66B00',
+          }}>
+          <Heading>Transaction histroy</Heading>
+        </Box>
+        <TransactionHistory></TransactionHistory>
       </ImageBackground>
     </Box>
   );

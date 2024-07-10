@@ -63,17 +63,13 @@ const Signup = () => {
   };
 
   const handleSignup = () => {
-    // if (validate()) {
-    //   console.log('Wallet Name:', walletName);
-    //   console.log('Password:', password);
-    //   console.log('Confirm Password:', confirmPassword);
-    //   console.log('Terms Accepted:', checked);
-    //   // Perform signup logic here
-    // dispatch(setWalletName(walletName));
-    // dispatch(setPassword(password));
-    // dispatch(setConfirmPassword(confirmPassword));
+    if (validate()) {
+      console.log('Wallet Name:', walletName);
+      console.log('Password:', password);
+      console.log('Confirm Password:', confirmPassword);
+      console.log('Terms Accepted:', checked);
     navigation.navigate('SecureAccount');
-    // }
+    }
    };
 
   const backbutton = () => {
@@ -197,7 +193,7 @@ const Signup = () => {
                 onPress={() => setPasswordVisible(!passwordVisible)}>
                 <ButtonIcon
                   color="#D2B48C"
-                  as={passwordVisible ? EyeOff : Eye}></ButtonIcon>
+                  as={passwordVisible ? Eye:EyeOff }></ButtonIcon>
               </Button>
             </Input>
             {errors.password && (
@@ -223,7 +219,7 @@ const Signup = () => {
                 }>
                 <ButtonIcon
                   color="#D2B48C"
-                  as={confirmPasswordVisible ? EyeOff : Eye}></ButtonIcon>
+                  as={confirmPasswordVisible ? Eye:EyeOff}></ButtonIcon>
               </Button>
             </Input>
             {errors.confirmPassword && (
