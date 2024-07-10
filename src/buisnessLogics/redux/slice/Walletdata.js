@@ -6,7 +6,8 @@ const initialState = {
   address: '',
   privateKey: '',
   mnemonics: '',
-  balance: '0 ETH', // Initial balance state
+  balance: '0 ETH',
+  transactions: [],
 };
 
 const WalletSlice = createSlice({
@@ -25,14 +26,25 @@ const WalletSlice = createSlice({
     setWalletBalance(state, action) {
       state.balance = action.payload;
     },
+    addTransaction(state, action) {
+      state.transactions.unshift(action.payload);
+    },
     clearWalletSliceData(state) {
       state.address = '';
       state.privateKey = '';
       state.mnemonics = '';
-      state.balance = '0 ETH'; // Reset balance when clearing data
+      state.balance = '0 ETH';
+      state.transactions = [];
     },
   },
 });
 
-export const { setUserAddress, setUserPrivateKey, setUserMnemonics, setWalletBalance, clearWalletSliceData } = WalletSlice.actions;
+export const {
+  setUserAddress,
+  setUserPrivateKey,
+  setUserMnemonics,
+  setWalletBalance,
+  addTransaction,
+  clearWalletSliceData,
+} = WalletSlice.actions;
 export default WalletSlice.reducer;

@@ -89,7 +89,6 @@ const Home = () => {
             </Heading>
           </Box>
         </Box>
-
         {/* Info */}
         <Box
           style={{
@@ -112,6 +111,27 @@ const Home = () => {
               {balance}
             </Heading>
           </Box>
+        </Box>
+        <Box
+          style={{
+            width: '90%',
+            marginHorizontal: '5%',
+            borderRadius: 20,
+            padding: 5,
+            flexDirection: 'row',
+            justifyContent: 'center',
+          }}>
+          <Heading color="#D66B00" fontSize={18}>
+            Adress:
+          </Heading>
+          <Heading
+            paddingHorizontal={5}
+            borderRadius={20}
+            textAlign="center"
+            color="#D66B00"
+            fontSize={12}>
+            {address}
+          </Heading>
         </Box>
         <Box
           style={{
@@ -139,30 +159,8 @@ const Home = () => {
             <ButtonText fontSize={FONT_SIZE(14)}>Receive</ButtonText>
           </Button>
         </Box>
-        <Box
-          style={{
-            width: '90%',
-            marginHorizontal: '5%',
-            borderRadius: 20,
-            padding: 5,
-            flexDirection: 'row',
-            justifyContent: 'center',
-          }}>
-          <Heading fontSize={16}>Adress: </Heading>
-          <Heading
-            paddingHorizontal={5}
-            borderRadius={20}
-            textAlign="center"
-            fontSize={12}>
-            {address}
-          </Heading>
-        </Box>
-
-        <Box
-          style={{
-            backgroundColor: '#D66B00',
-          }}>
-          <Heading>Transaction histroy</Heading>
+        <Box marginTop={30} justifyContent="center" alignItems="center">
+          <Heading color="#D66B00">Transaction histroy</Heading>
         </Box>
         <TransactionHistory></TransactionHistory>
       </ImageBackground>

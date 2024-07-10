@@ -23,7 +23,7 @@ const Receive = () => {
   const address = useSelector(state => state.wallet.address);
   console.log(address);
   const backbutton = () => {
-    navigation.navigate('Home');
+    navigation.navigate('BottomTabs');
   };
 
   return (

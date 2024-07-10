@@ -1,83 +1,53 @@
-import React, {useState, useEffect} from 'react';
+import React from 'react';
 import {View, FlatList, Text, StyleSheet} from 'react-native';
-import Web3 from 'web3';
 import {useSelector} from 'react-redux';
-
+import {
+  ArrowLeftRight,
+  BadgeDollarSign,
+  BookUser,
+  Send,
+} from 'lucide-react-native';
+import {Box, Heading, Icon} from '@gluestack-ui/themed';
 const TransactionHistory = () => {
-  const address = useSelector(state => state.wallet.address);
-  const infuraProjectId = '7aae9efdf2944cb2abd77d6d04a34b5b';
-  const [transactions, setTransactions] = useState([]);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      if (!address) return;
-
-      try {
-        const web3 = new Web3(
-          new Web3.providers.HttpProvider(
-            `https://sepolia.infura.io/v3/${infuraProjectId}`,
-          ),
-        );
-        const txCount = await web3.eth.getTransactionCount(address);
-        console.log(txCount);
-        const txs = [];
-        for (let i = 0; i < txCount; i++) {
-          const tx = await web3.eth.getTransactionFromBlock('latest', i);
-          txs.push(tx);
-        }
-        console.log(txs);
-        const formattedTransactions = txs.map(tx => ({
-          srNo: tx.transactionIndex,
-          type: tx.type,
-          address: tx.to,
-          amount: web3.utils.fromWei(tx.value, 'ether'),
-          gasUsed: web3.utils.fromWei(tx.gas.toString(), 'ether'),
-          blockNumber: tx.blockNumber,
-          status: tx.status === true ? 'Success' : 'Failed',
-          direction:
-            tx.from.toLowerCase() === address.toLowerCase()
-              ? 'Sent'
-              : 'Received',
-        }));
-
-        setTransactions(formattedTransactions);
-        console.log('Formated transcations', transactions);
-      } catch (err) {
-        setError('Failed to fetch transactions');
-        console.error('Error fetching transactions:', err);
-      }
-    };
-
-    fetchTransactions();
-  }, [address]);
-  const renderItem = ({ item }) => (
-    <View style={styles.transactionItem}>
-      <Text style={styles.transactionText}>
-        {item.direction === 'Sent' ? 'To: ' : 'From: '}
-        {item.address}
-      </Text>
-      <Text style={styles.transactionText}>
-        Transaction Index: {item.srNo}
-      </Text>
-      <Text style={styles.transactionText}>
-        Amount: {item.amount} ETH
-      </Text>
-      <Text style={styles.transactionText}>
-        Gas Used: {item.gasUsed.toString()} ETH
-      </Text>
-      <Text style={styles.transactionText}>
-        Block Number: {item.blockNumber.toString()}
-      </Text>
-    </View>
+  const transactions = useSelector(state => state.wallet.transactions);
+  console.log(transactions);
+  const renderItem = ({item}) => (
+    <Box style={styles.transactionItem}>
+      <Box width={40} justifyContent="center" alignItems="center">
+        <Icon color={'#FF7006'} size="xl" as={Send}></Icon>
+      </Box>
+      <Box justifyContent="center">
+        <Box flexDirection="row">
+          <Heading style={styles.transactionText} width={60}>
+            Amount:
+          </Heading>
+          <Heading style={styles.transactionText}>{item[0]} ETH</Heading>
+        </Box>
+        <Box flexDirection="row">
+          <Heading style={styles.transactionText} width={60}>
+            GassFee:
+          </Heading>
+          <Heading style={styles.transactionText}>{item[2]} ETH</Heading>
+        </Box>
+        <Box width={'75%'} flexDirection="row">
+          <Heading style={styles.transactionText} width={60}>
+            To:
+          </Heading>
+          <Heading lineHeight={20} style={styles.transactionText}>
+            {item[1]}
+          </Heading>
+        </Box>
+        <Box flexDirection="row">
+          <Heading style={styles.transactionText} width={60}>
+            Time:
+          </Heading>
+          <Heading style={styles.transactionText}>
+            {new Date(item[3]).toLocaleString()}
+          </Heading>
+        </Box>
+      </Box>
+    </Box>
   );
-  if (error) {
-    return (
-      <View style={styles.centeredView}>
-        <Text>{error}</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -94,41 +64,28 @@ const TransactionHistory = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 10,
+    paddingTop: 20,
   },
-  centeredView: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  transactionItem: {
-    flexDirection: 'column',
+  transactionItem: { marginHorizontal:'4%',
+    backgroundColor: '#FEEEE2',
+    marginBottom: 20,
+    flexDirection: 'row',
     padding: 10,
+    borderRadius: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
-  },  listContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
   },
-  transactionItem: {
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
+  transactionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
   },
   transactionText: {
-    fontSize: 16,
-    marginBottom: 8,
+    color: '#FF7006',
+    fontSize: 12,
   },
-  emptyListText: {
-    fontSize: 18,
-    textAlign: 'center',
-    marginTop: 20,
+  icon: {
+    marginRight: 10,
   },
 });
 

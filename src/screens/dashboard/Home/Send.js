@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {StyleSheet, Alert, Text} from 'react-native';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import {ethers} from 'ethers';
 import {
   Box,
@@ -10,8 +10,12 @@ import {
   ButtonText,
   Input,
   InputField,
+  Spinner,
+  ButtonIcon,
 } from '@gluestack-ui/themed';
-
+import {ArrowLeft} from 'lucide-react-native';
+import {addTransaction} from '../../../buisnessLogics/redux/slice/Walletdata';
+import {useNavigation} from '@react-navigation/native';
 import {
   HEIGHT_BASE_RATIO,
   WIDTH_BASE_RATIO,
@@ -20,6 +24,9 @@ import {
 
 const SendTransaction = () => {
   const privateKey = useSelector(state => state.wallet.privateKey);
+  const balance = useSelector(state => state.wallet.balance);
+  const dispatch = useDispatch();
+
   const [toAddress, setToAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,9 +34,10 @@ const SendTransaction = () => {
   const [gasFee, setGasFee] = useState('');
   const [toAddressError, setToAddressError] = useState('');
   const [amountError, setAmountError] = useState('');
-  const balance = useSelector(state => state.wallet.balance);
+
   const infuraProjectId = '7aae9efdf2944cb2abd77d6d04a34b5b';
   const provider = new ethers.InfuraProvider('sepolia', infuraProjectId);
+
   useEffect(() => {
     const calculateGasFee = async () => {
       try {
@@ -77,6 +85,7 @@ const SendTransaction = () => {
     return valid;
   };
 
+  const navigation = useNavigation();
   const sendTransaction = async () => {
     if (!validateInputs()) {
       return;
@@ -92,7 +101,17 @@ const SendTransaction = () => {
       };
       const txResponse = await wallet.sendTransaction(tx);
       setTransactionHash(txResponse.hash);
-      Alert.alert('Transaction Sent', `Transaction hash: ${txResponse.hash}`);
+      Alert.alert('Transaction Sent');
+
+      // Save transaction details to Redux
+      const transactionDetails = [
+        amount,
+        toAddress,
+        gasFee,
+        (timestamp = new Date().toISOString()),
+      ];
+
+      dispatch(addTransaction(transactionDetails));
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to send transaction.');
       console.error('Error sending transaction:', error);
@@ -100,7 +119,9 @@ const SendTransaction = () => {
       setLoading(false);
     }
   };
-
+  const backbutton = () => {
+    navigation.navigate('BottomTabs');
+  };
   return (
     <Box style={{flex: 1}}>
       <ImageBackground
@@ -111,9 +132,16 @@ const SendTransaction = () => {
           style={{
             height: HEIGHT_BASE_RATIO(80),
             alignItems: 'center',
-            justifyContent: 'center',
             flexDirection: 'row',
           }}>
+          <Box style={{flex: 0.3}}>
+            <Button
+              width={WIDTH_BASE_RATIO(80)}
+              onPress={backbutton}
+              style={{backgroundColor: '#FFFF'}}>
+              <ButtonIcon as={ArrowLeft} color="#D66B00" />
+            </Button>
+          </Box>
           <Box
             style={{
               flex: 0.45,
@@ -133,21 +161,31 @@ const SendTransaction = () => {
             justifyContent: 'center',
             alignItems: 'center',
           }}>
-          <Heading height={50}            style={{fontSize: FONT_SIZE(20), fontWeight: '800'}}
+          <Heading
+            style={{fontSize: FONT_SIZE(16), fontWeight: '800'}}
             color="#D66B00">
-           Total balance:  {balance}
+            Total balance:
           </Heading>
+          <Heading
+            style={{fontSize: FONT_SIZE(20), fontWeight: '800'}}
+            color="#D66B00">
+            {balance}
+          </Heading>
+        </Box>
+        <Box justifyContent="center" alignItems="center" marginTop={50}>
+          <Heading style={styles.title}>Send Transaction</Heading>
         </Box>
         <Box
           height={200}
           justifyContent="space-evenly"
           width={'80%'}
           marginHorizontal={'10%'}>
-          <Heading style={styles.title}>Send Transaction</Heading>
-          <Input>
+          <Input borderColor="#D2B48C" borderWidth={2} borderRadius={20}>
             <InputField
+              autoCapitalize="none"
               style={styles.input}
               placeholder="Recipient Address"
+              placeholderTextColor={'#D2B48C'}
               value={toAddress}
               onChangeText={text => {
                 setToAddress(text);
@@ -160,9 +198,10 @@ const SendTransaction = () => {
           {toAddressError ? (
             <Text style={styles.errorText}>{toAddressError}</Text>
           ) : null}
-          <Input>
+          <Input borderColor="#D2B48C" borderWidth={2} borderRadius={20}>
             <InputField
               style={styles.input}
+              placeholderTextColor={'#D2B48C'}
               placeholder="Amount in ETH"
               value={amount}
               onChangeText={text => {
@@ -182,17 +221,14 @@ const SendTransaction = () => {
           <Text style={styles.gasFeeText}>Gas Fee: {gasFee} ETH</Text>
         )}
         <Box alignItems="center" marginTop={50}>
-          <Button onPress={sendTransaction} disabled={loading}>
-            <ButtonText>Send Coins</ButtonText>
-          </Button>
+          {loading ? (
+            <Spinner></Spinner>
+          ) : (
+            <Button backgroundColor='#D66B00' onPress={sendTransaction} disabled={loading}>
+              <ButtonText color='#FFFF'>Send Coins</ButtonText>
+            </Button>
+          )}
         </Box>
-        {loading && <Text style={styles.loadingText}>Sending...</Text>}
-        {transactionHash && (
-          <Box style={styles.transactionContainer}>
-            <Heading style={styles.transactionTitle}>Transaction Hash:</Heading>
-            <Heading style={styles.transactionHash}>{transactionHash}</Heading>
-          </Box>
-        )}
       </ImageBackground>
     </Box>
   );
@@ -206,15 +242,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 30,
+    color: '#D66B00',
   },
   input: {
     height: 40,
+    color: '#D66B00',
+    fontWeight: '800',
+    fontSize: 14,
     width: '100%',
     borderColor: 'gray',
-    borderWidth: 1,
     marginBottom: 10,
     paddingHorizontal: 10,
   },
