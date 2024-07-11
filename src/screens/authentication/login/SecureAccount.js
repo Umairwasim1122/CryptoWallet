@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet } from 'react-native';
+import React, {useState} from 'react';
+import {StyleSheet} from 'react-native';
 import {
   Box,
   Button,
@@ -12,27 +12,27 @@ import {
   WIDTH_BASE_RATIO,
   FONT_SIZE,
 } from '../../../buisnessLogics/utils/helpers';
-import { ArrowLeft } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
+import {ArrowLeft} from 'lucide-react-native';
+import {useNavigation} from '@react-navigation/native';
 
 const SecureAccount = () => {
   const navigation = useNavigation();
-  const [numWords, setNumWords] = useState(12); // Default to 12 words
+  const [numWords, setNumWords] = useState(12);
 
   const backbutton = () => {
     navigation.navigate('Signup');
   };
 
-  const handleWordsSelection = (words) => {
+  const handleWordsSelection = words => {
     setNumWords(words);
-    navigation.navigate('Create2fa', { numWords: words });
+    navigation.navigate('Create2fa', {numWords: words});
   };
 
   return (
-    <Box style={{ flex: 1 }}>
+    <Box style={{flex: 1}}>
       <ImageBackground
         source={require('../../../Assets/Images/background.jpg')}
-        style={{ flex: 1 }}>
+        style={{flex: 1}}>
         {/* Header */}
         <Box
           style={{
@@ -40,11 +40,11 @@ const SecureAccount = () => {
             alignItems: 'center',
             flexDirection: 'row',
           }}>
-          <Box style={{ flex: 0.3 }}>
+          <Box style={{flex: 0.3}}>
             <Button
               width={WIDTH_BASE_RATIO(80)}
               onPress={backbutton}
-              style={{ backgroundColor: '#FFFF' }}>
+              style={{backgroundColor: '#FFFF'}}>
               <ButtonIcon as={ArrowLeft} color="#D66B00"></ButtonIcon>
             </Button>
           </Box>
@@ -55,25 +55,33 @@ const SecureAccount = () => {
               alignItems: 'center',
             }}>
             <Heading
-              style={{ fontSize: FONT_SIZE(20), fontWeight: '800' }}
+              style={{fontSize: FONT_SIZE(20), fontWeight: '800'}}
               color="#D66B00">
               Currency App
             </Heading>
           </Box>
         </Box>
-
         <Box
-          style={{ justifyContent: 'center', alignItems: 'center', flex: 0.2 }}>
-          <Heading style={{ fontSize: FONT_SIZE(15) }}>SECURE YOUR WALLET</Heading>
+          style={{justifyContent: 'center', alignItems: 'center', flex: 0.2}}>
+          <Heading
+            style={{fontSize: FONT_SIZE(18), fontWeight: '800'}}
+            color="#D66B00">
+            SECURE YOUR WALLET
+          </Heading>
         </Box>
         <Box
-          style={{ justifyContent: 'center', alignItems: 'center', flex: 0.6 }}>
+          style={{justifyContent: 'center', alignItems: 'center', flex: 0.6}}>
           <Heading
             paddingHorizontal={'5%'}
             textAlign="center"
-            style={{ fontSize: FONT_SIZE(15), fontWeight: 500 }}>
+            style={{
+              fontSize: FONT_SIZE(15),
+              fontWeight: 500,
+              color: '#D66B00',
+            }}>
             Do not risk losing your funds. Protect your wallet by saving your
-            {numWords === 12 ? ' 12-word' : ' 24-word'} phrase in a secure place.
+            {numWords === 12 ? ' 12-word' : ' 24-word'} phrase in a secure
+            place.
           </Heading>
         </Box>
         <Box
@@ -91,8 +99,12 @@ const SecureAccount = () => {
               backgroundColor: '#562B00',
             }}
             onPress={() => handleWordsSelection(12)}>
-            <Heading style={{ fontSize: FONT_SIZE(15), color: '#FFFF' }}>12</Heading>
-            <Heading style={{ fontSize: FONT_SIZE(16), color: '#FFFF' }}>Words</Heading>
+            <Heading style={{fontSize: FONT_SIZE(15), color: '#FFFF'}}>
+              12
+            </Heading>
+            <Heading style={{fontSize: FONT_SIZE(16), color: '#FFFF'}}>
+              Words
+            </Heading>
           </Button>
           <Button
             style={{
@@ -102,8 +114,12 @@ const SecureAccount = () => {
               backgroundColor: '#562B00',
             }}
             onPress={() => handleWordsSelection(24)}>
-            <Heading style={{ fontSize: FONT_SIZE(15), color: '#FFFF' }}>24</Heading>
-            <Heading style={{ fontSize: FONT_SIZE(16), color: '#FFFF' }}>Words</Heading>
+            <Heading style={{fontSize: FONT_SIZE(15), color: '#FFFF'}}>
+              24
+            </Heading>
+            <Heading style={{fontSize: FONT_SIZE(16), color: '#FFFF'}}>
+              Words
+            </Heading>
           </Button>
         </Box>
       </ImageBackground>

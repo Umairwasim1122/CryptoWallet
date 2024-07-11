@@ -21,7 +21,7 @@ import {
 } from '../../../buisnessLogics/utils/helpers';
 import {useNavigation} from '@react-navigation/native';
 import {ArrowLeft, Eye, ArrowRight, EyeOff} from 'lucide-react-native';
-import { useDispatch } from 'react-redux';
+import {useDispatch} from 'react-redux';
 import {
   setWalletName,
   setPassword,
@@ -68,9 +68,9 @@ const Signup = () => {
       console.log('Password:', password);
       console.log('Confirm Password:', confirmPassword);
       console.log('Terms Accepted:', checked);
-    navigation.navigate('SecureAccount');
+      navigation.navigate('SecureAccount');
     }
-   };
+  };
 
   const backbutton = () => {
     navigation.navigate('CreateAccount');
@@ -160,11 +160,13 @@ const Signup = () => {
               justifyContent: 'space-evenly',
             }}>
             <Input
-              borderColor="#562B00"
+              borderRadius={20}
+              borderWidth={2}
+              borderColor="#D2B48C"
               style={{backgroundColor: '#FFFF'}}
               width={WIDTH_BASE_RATIO(330)}>
               <InputField
-                color="#562B00"
+                color='#D66B00'
                 fontSize={FONT_SIZE(12)}
                 placeholder="Give your wallet a unique name"
                 placeholderTextColor={'#D2B48C'}
@@ -176,11 +178,13 @@ const Signup = () => {
               <Text style={styles.errorText}>{errors.walletName}</Text>
             )}
             <Input
-              borderColor="#562B00"
+              borderRadius={20}
+              borderWidth={2}
+              borderColor="#D2B48C"
               style={{backgroundColor: '#FFFF'}}
               width={WIDTH_BASE_RATIO(330)}>
               <InputField
-                color="#562B00"
+                color='#D66B00'
                 fontSize={FONT_SIZE(12)}
                 placeholder="Enter new Password"
                 placeholderTextColor={'#D2B48C'}
@@ -193,18 +197,20 @@ const Signup = () => {
                 onPress={() => setPasswordVisible(!passwordVisible)}>
                 <ButtonIcon
                   color="#D2B48C"
-                  as={passwordVisible ? Eye:EyeOff }></ButtonIcon>
+                  as={passwordVisible ? Eye : EyeOff}></ButtonIcon>
               </Button>
             </Input>
             {errors.password && (
               <Text style={styles.errorText}>{errors.password}</Text>
             )}
             <Input
-              borderColor="#562B00"
+              borderRadius={20}
+              borderWidth={2}
+              borderColor="#D2B48C"
               style={{backgroundColor: '#FFFF'}}
               width={WIDTH_BASE_RATIO(330)}>
               <InputField
-                color="#562B00"
+                color='#D66B00'
                 fontSize={FONT_SIZE(12)}
                 placeholder="Confirm Password"
                 placeholderTextColor={'#D2B48C'}
@@ -219,7 +225,7 @@ const Signup = () => {
                 }>
                 <ButtonIcon
                   color="#D2B48C"
-                  as={confirmPasswordVisible ? Eye:EyeOff}></ButtonIcon>
+                  as={confirmPasswordVisible ? Eye : EyeOff}></ButtonIcon>
               </Button>
             </Input>
             {errors.confirmPassword && (
@@ -241,8 +247,10 @@ const Signup = () => {
                 />
               </CheckboxIndicator>
               <CheckboxLabel
-                fontSize={FONT_SIZE(12)}
+              color='#D66B00'
+                fontSize={FONT_SIZE(13)}
                 width={WIDTH_BASE_RATIO(300)}
+                lineHeight={20}
                 numberOfLines={3}>
                 I have already reviewed all the terms and services and privacy
                 policy

@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { ethers } from 'ethers';
+import React, {useState} from 'react';
+import {useDispatch} from 'react-redux';
+import {ethers} from 'ethers';
 import {
   setUserAddress,
   setUserPrivateKey,
   setUserMnemonics,
 } from '../../../buisnessLogics/redux/slice/Walletdata';
-import { Alert, StyleSheet, Text } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {Alert, StyleSheet, Text} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import {
   HEIGHT_BASE_RATIO,
   WIDTH_BASE_RATIO,
@@ -31,7 +31,7 @@ const Restore = () => {
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
 
-  const validateMnemonics = (mnemonics) => {
+  const validateMnemonics = mnemonics => {
     try {
       ethers.Wallet.fromPhrase(mnemonics);
       return true;
@@ -40,7 +40,7 @@ const Restore = () => {
     }
   };
 
-  const restoreAccount =() => {
+  const restoreAccount = () => {
     setLoading(true);
 
     if (mnemonics.trim() === '') {
@@ -71,17 +71,17 @@ const Restore = () => {
         'Error',
         'Failed to restore account. Please check your mnemonic phrase and try again.',
       );
-    } finally {
+    } 
+    finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box style={{ flex: 1 }}>
+    <Box style={{flex: 1}}>
       <ImageBackground
         source={require('../../../Assets/Images/background.jpg')}
-        style={{ flex: 1 }}
-      >
+        style={{flex: 1}}>
         {/* Header */}
         <Box
           style={{
@@ -89,19 +89,16 @@ const Restore = () => {
             alignItems: 'center',
             justifyContent: 'center',
             flexDirection: 'row',
-          }}
-        >
+          }}>
           <Box
             style={{
               flex: 0.45,
               justifyContent: 'center',
               alignItems: 'center',
-            }}
-          >
+            }}>
             <Heading
-              style={{ fontSize: FONT_SIZE(20), fontWeight: '800' }}
-              color="#D66B00"
-            >
+              style={{fontSize: FONT_SIZE(20), fontWeight: '800'}}
+              color="#D66B00">
               Currency App
             </Heading>
           </Box>
@@ -109,13 +106,18 @@ const Restore = () => {
         <Box
           height={HEIGHT_BASE_RATIO(200)}
           width={WIDTH_BASE_RATIO(350)}
-          marginHorizontal={WIDTH_BASE_RATIO(20)}
-        >
-          <Input height={100}>
+          marginHorizontal={WIDTH_BASE_RATIO(20)}>
+          <Input
+            borderColor="#D2B48C"
+            borderWidth={2}
+            borderRadius={20}
+            height={100}>
             <InputField
+              color={'#D66B00'}
+              placeholderTextColor={'#D2B48C'}
               placeholder="Enter your mnemonic phrase"
               value={mnemonics}
-              onChangeText={(text) => {
+              onChangeText={text => {
                 setMnemonics(text);
                 if (error) setError('');
               }}
@@ -129,12 +131,11 @@ const Restore = () => {
           width={WIDTH_BASE_RATIO(200)}
           marginHorizontal={WIDTH_BASE_RATIO(90)}
           alignItems="center"
-          justifyContent="center"
-        >
+          justifyContent="center">
           {loading ? (
             <Spinner />
           ) : (
-            <Button onPress={restoreAccount}>
+            <Button backgroundColor="#D66B00" onPress={restoreAccount}>
               <ButtonText>Restore Account</ButtonText>
             </Button>
           )}

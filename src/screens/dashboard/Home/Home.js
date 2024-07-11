@@ -97,11 +97,6 @@ const Home = () => {
             alignItems: 'center',
           }}>
           <Box>
-            <Heading style={{fontSize: FONT_SIZE(16), color: '#D66B00'}}>
-              User name: {username}
-            </Heading>
-          </Box>
-          <Box>
             <Heading style={{fontSize: FONT_SIZE(18), color: '#D66B00'}}>
               Total Balance
             </Heading>

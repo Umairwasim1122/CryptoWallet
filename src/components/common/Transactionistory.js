@@ -55,7 +55,10 @@ const TransactionHistory = () => {
         data={transactions}
         renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()}
-        ListEmptyComponent={() => <Text>No transactions found.</Text>}
+        ListEmptyComponent={() => <Box alignItems='center' justifyContent='center'
+        marginTop={30}>
+          <Heading color='#D2B48C' fontSize={14}>No Transaction found</Heading>
+        </Box>}
       />
     </View>
   );

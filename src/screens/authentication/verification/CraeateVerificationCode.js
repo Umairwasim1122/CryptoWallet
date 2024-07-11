@@ -20,6 +20,7 @@ import {ethers} from 'ethers';
 import 'react-native-get-random-values';
 import {useDispatch} from 'react-redux';
 import {
+  clearTransactions,
   setUserAddress,
   setUserMnemonics,
   setUserPrivateKey,
@@ -80,10 +81,8 @@ const Verification = () => {
     dispatch(setUserAddress(address));
     dispatch(setUserMnemonics(mnemonic));
     dispatch(setUserPrivateKey(privateKey));
-    navigation.navigate('Home', {
-      privateKey,
-      address,
-    });
+    dispatch(clearTransactions()); 
+    navigation.navigate('BottomTabs')
   };
 
   return (
@@ -153,7 +152,7 @@ const Verification = () => {
           </Box>
         </Box>
         <Box style={styles.copyButtonContainer}>
-          <Button size="xs" onPress={copyToClipboard} style={styles.copyButton}>
+          <Button size="xs" osnPress={copyToClipboard} style={styles.copyButton}>
             <ButtonIcon as={Copy} color="#FFF" />
           </Button>
         </Box>

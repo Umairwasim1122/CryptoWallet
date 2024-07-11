@@ -29,11 +29,7 @@ const WalletSlice = createSlice({
     addTransaction(state, action) {
       state.transactions.unshift(action.payload);
     },
-    clearWalletSliceData(state) {
-      state.address = '';
-      state.privateKey = '';
-      state.mnemonics = '';
-      state.balance = '0 ETH';
+    clearTransactions(state) {
       state.transactions = [];
     },
   },
@@ -45,6 +41,6 @@ export const {
   setUserMnemonics,
   setWalletBalance,
   addTransaction,
-  clearWalletSliceData,
+  clearTransactions,
 } = WalletSlice.actions;
 export default WalletSlice.reducer;
