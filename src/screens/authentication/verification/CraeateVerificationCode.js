@@ -1,180 +1,126 @@
-import {StyleSheet, Text} from 'react-native';
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import {
-  Box,
-  Button,
-  ButtonIcon,
-  Heading,
-  ImageBackground,
-  Toast,
-} from '@gluestack-ui/themed';
-import {
-  HEIGHT_BASE_RATIO,
-  WIDTH_BASE_RATIO,
-  FONT_SIZE,
-} from '../../../buisnessLogics/utils/helpers';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import {ArrowLeft, ArrowRight, Copy} from 'lucide-react-native';
-import {ethers} from 'ethers';
-import 'react-native-get-random-values';
-import {useDispatch} from 'react-redux';
-import {
-  clearTransactions,
-  setUserAddress,
-  setUserMnemonics,
-  setUserPrivateKey,
-} from '../../../buisnessLogics/redux/slice/Walletdata';
-
-const generateWallet = async () => {
-  const wallet = ethers.Wallet.createRandom();
-  const mnemonic = wallet.mnemonic.phrase;
-  const words = mnemonic.split(' ');
-  const numberedWords = words.map((word, index) => `${index + 1}. ${word}`);
-
-  return {
-    mnemonic,
-    numberedWords,
-    privateKey: wallet.privateKey,
-    address: wallet.address,
-  };
-};
+import { Box, Button, ButtonIcon, Heading, ImageBackground, Spinner, Toast } from '@gluestack-ui/themed';
+import { HEIGHT_BASE_RATIO, WIDTH_BASE_RATIO, FONT_SIZE } from '../../../buisnessLogics/utils/helpers';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { ArrowLeft, ArrowRight, Copy } from 'lucide-react-native';
+import { useDispatch } from 'react-redux';
+import { clearTransactions, setUserAddress, setUserMnemonics, setUserPrivateKey } from '../../../buisnessLogics/redux/slice/Walletdata';
+import { generateWallet } from '../../../buisnessLogics/utils/generateWallet';
 
 const Verification = () => {
   const route = useRoute();
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const {numWords} = route.params;
+  const { numWords } = route.params;
   const [mnemonic, setMnemonic] = useState('');
   const [numberedMnemonic, setNumberedMnemonic] = useState([]);
   const [privateKey, setPrivateKey] = useState('');
   const [address, setAddress] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [restoring, setRestoring] = useState(false);
 
   useEffect(() => {
     const initializeWallet = async () => {
       try {
-        const {mnemonic, numberedWords, privateKey, address} =
-          await generateWallet();
+        const { mnemonic, numberedWords, privateKey, address } = await generateWallet();
         setMnemonic(mnemonic);
         setNumberedMnemonic(numberedWords);
         setPrivateKey(privateKey);
         setAddress(address);
-        console.log('Mnemonic:', mnemonic);
-        console.log('Private Key:', privateKey);
-        console.log('Address:', address);
       } catch (error) {
         console.error(error.message);
+        Toast.show({
+          title: 'Error',
+          status: 'error',
+          description: 'Failed to generate wallet.',
+        });
+      } finally {
+        setLoading(false);
       }
     };
     initializeWallet();
   }, []);
 
-  const backbutton = () => {
+  const handleBackButton = () => {
     navigation.navigate('Signup');
   };
 
-  const copyToClipboard = () => {
+  const handleCopyToClipboard = () => {
     Clipboard.setString(mnemonic);
   };
 
-  const Nextbutton = () => {
-    dispatch(setUserAddress(address));
-    dispatch(setUserMnemonics(mnemonic));
-    dispatch(setUserPrivateKey(privateKey));
-    dispatch(clearTransactions()); 
-    navigation.navigate('BottomTabs')
+  const handleNextButton = async () => {
+    setRestoring(true);
+    try {
+      dispatch(setUserAddress(address));
+      dispatch(setUserMnemonics(mnemonic));
+      dispatch(setUserPrivateKey(privateKey));
+      dispatch(clearTransactions());
+      navigation.navigate('BottomTabs');
+    } catch (error) {
+      console.error(error.message);
+      Toast.show({
+        title: 'Error',
+        status: 'error',
+        description: 'Failed to restore account.',
+      });
+    } finally {
+      setRestoring(false);
+    }
   };
 
   return (
-    <Box style={{flex: 1}}>
-      <ImageBackground
-        source={require('../../../Assets/Images/background.jpg')}
-        style={{flex: 1}}>
+    <Box style={{ flex: 1 }}>
+      <ImageBackground source={require('../../../Assets/Images/background.jpg')} style={{ flex: 1 }}>
         {/* Header */}
-        <Box
-          style={{
-            height: HEIGHT_BASE_RATIO(80),
-            alignItems: 'center',
-            flexDirection: 'row',
-          }}>
-          <Box style={{flex: 0.3}}>
-            <Button
-              width={WIDTH_BASE_RATIO(80)}
-              onPress={backbutton}
-              style={{backgroundColor: '#FFFF'}}>
+        <Box style={styles.header}>
+          <Box style={styles.backButtonContainer}>
+            <Button width={WIDTH_BASE_RATIO(80)} onPress={handleBackButton} style={styles.backButton}>
               <ButtonIcon as={ArrowLeft} color="#D66B00" />
             </Button>
           </Box>
-          <Box
-            style={{
-              flex: 0.45,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-            <Heading
-              style={{fontSize: FONT_SIZE(20), fontWeight: '800'}}
-              color="#D66B00">
+          <Box style={styles.headerTitleContainer}>
+            <Heading style={styles.headerTitle} color="#D66B00">
               Currency App
             </Heading>
           </Box>
         </Box>
-        <Box
-          style={{
-            height: HEIGHT_BASE_RATIO(130),
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}>
-          <Heading
-            color="#D66B00"
-            style={{
-              fontSize: FONT_SIZE(18),
-              fontWeight: '800',
-              marginBottom: 10,
-            }}>
+        {/* Content */}
+        <Box style={styles.contentContainer}>
+          <Heading color="#D66B00" style={styles.mainHeading}>
             SAVE YOUR BACKUP PHRASE
           </Heading>
-          <Heading
-            paddingHorizontal="5%"
-            textAlign="center"
-            color="#D2B48C"
-            style={{fontSize: FONT_SIZE(15), fontWeight: '800'}}>
-            This is your {numWords}-word seed phrase. You will be asked to
-            reenter this phrase in the correct order on the next step.
+          <Heading style={styles.subHeading} textAlign="center" color="#D2B48C">
+            This is your {numWords}-word seed phrase. You will be asked to reenter this phrase in the correct order on the next step.
           </Heading>
         </Box>
-        <Box style={{padding: 20}}>
-          <Box style={styles.gridContainer}>
-            {numberedMnemonic.map((word, index) => (
+        <Box style={styles.gridContainer}>
+          {loading ? (
+            <Spinner size="lg" color="#D66B00" />
+          ) : (
+            numberedMnemonic.map((word, index) => (
               <Box key={index} style={styles.gridItem}>
                 <Text>{word}</Text>
               </Box>
-            ))}
-          </Box>
+            ))
+          )}
         </Box>
         <Box style={styles.copyButtonContainer}>
-          <Button size="xs" osnPress={copyToClipboard} style={styles.copyButton}>
+          <Button size="xs" onPress={handleCopyToClipboard} style={styles.copyButton}>
             <ButtonIcon as={Copy} color="#FFF" />
           </Button>
         </Box>
-        <Box
-          position="absolute"
-          top={HEIGHT_BASE_RATIO(720)}
-          left={WIDTH_BASE_RATIO(300)}
-          paddingHorizontal="5%"
-          justifyContent="center"
-          alignItems="flex-end">
-          <Button
-            backgroundColor="#562B00"
-            size="md"
-            borderRadius={10}
-            onPress={Nextbutton}>
-            <ButtonIcon size="md" as={ArrowRight} />
-          </Button>
+        <Box style={styles.nextButtonContainer}>
+          {restoring ? (
+            <Spinner size="lg" color="#D66B00" />
+          ) : (
+            <Button backgroundColor="#562B00" size="md" borderRadius={10} onPress={handleNextButton}>
+              <ButtonIcon size="md" as={ArrowRight} />
+            </Button>
+          )}
         </Box>
-        {/* <Box style={styles.walletInfoContainer}>
-          <Text style={styles.walletInfo}>Private Key: {privateKey}</Text>
-          <Text style={styles.walletInfo}>Address: {address}</Text>
-        </Box> */}
       </ImageBackground>
     </Box>
   );
@@ -183,7 +129,43 @@ const Verification = () => {
 export default Verification;
 
 const styles = StyleSheet.create({
+  header: {
+    height: HEIGHT_BASE_RATIO(80),
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  backButtonContainer: {
+    flex: 0.3,
+  },
+  backButton: {
+    backgroundColor: '#FFFF',
+  },
+  headerTitleContainer: {
+    flex: 0.45,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: FONT_SIZE(20),
+    fontWeight: '800',
+  },
+  contentContainer: {
+    height: HEIGHT_BASE_RATIO(130),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mainHeading: {
+    fontSize: FONT_SIZE(18),
+    fontWeight: '800',
+    marginBottom: 10,
+  },
+  subHeading: {
+    paddingHorizontal: '5%',
+    fontSize: FONT_SIZE(15),
+    fontWeight: '800',
+  },
   gridContainer: {
+    padding: 20,
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
@@ -207,16 +189,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#D66B00',
     borderRadius: 5,
   },
-  copyButtonText: {
-    color: '#FFF',
-    marginLeft: 5,
-  },
-  walletInfoContainer: {
+  nextButtonContainer: {
+    position: 'absolute',
+    top: HEIGHT_BASE_RATIO(720),
+    left: WIDTH_BASE_RATIO(300),
     paddingHorizontal: '5%',
-    marginVertical: 20,
-  },
-  walletInfo: {
-    fontSize: 14,
-    color: '#000',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
   },
 });

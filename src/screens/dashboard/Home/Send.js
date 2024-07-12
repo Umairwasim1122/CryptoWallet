@@ -12,8 +12,9 @@ import {
   InputField,
   Spinner,
   ButtonIcon,
+  Icon,
 } from '@gluestack-ui/themed';
-import {ArrowLeft} from 'lucide-react-native';
+import {ArrowLeft, Scan, ScanLine} from 'lucide-react-native';
 import {addTransaction} from '../../../buisnessLogics/redux/slice/Walletdata';
 import {useNavigation} from '@react-navigation/native';
 import {
@@ -156,11 +157,7 @@ const SendTransaction = () => {
           </Box>
         </Box>
         <Box
-          style={{
-            flex: 0.2,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}>
+          style={{height: 100, justifyContent: 'center', alignItems: 'center'}}>
           <Heading
             style={{fontSize: FONT_SIZE(16), fontWeight: '800'}}
             color="#D66B00">
@@ -175,6 +172,11 @@ const SendTransaction = () => {
         <Box justifyContent="center" alignItems="center" marginTop={50}>
           <Heading style={styles.title}>Send Transaction</Heading>
         </Box>
+        {/* <Box height={30} justifyContent="center" alignItems="center">
+          <Button   backgroundColor="#D66B00">
+            <ButtonIcon as={ScanLine} />
+          </Button>
+        </Box> */}
         <Box
           height={200}
           justifyContent="space-evenly"
@@ -224,8 +226,11 @@ const SendTransaction = () => {
           {loading ? (
             <Spinner></Spinner>
           ) : (
-            <Button backgroundColor='#D66B00' onPress={sendTransaction} disabled={loading}>
-              <ButtonText color='#FFFF'>Send Coins</ButtonText>
+            <Button
+              backgroundColor="#D66B00"
+              onPress={sendTransaction}
+              disabled={loading}>
+              <ButtonText color="#FFFF">Send Coins</ButtonText>
             </Button>
           )}
         </Box>

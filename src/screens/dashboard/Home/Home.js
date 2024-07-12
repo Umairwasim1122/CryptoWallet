@@ -14,7 +14,7 @@ import {
   FONT_SIZE,
 } from '../../../buisnessLogics/utils/helpers';
 import {useNavigation} from '@react-navigation/native';
-import axios from 'axios'; // Import Axios
+import axios from 'axios';
 import {ArrowUpCircleIcon, ArrowDownCircleIcon} from 'lucide-react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {setWalletBalance} from '../../../buisnessLogics/redux/slice/Walletdata';
@@ -22,11 +22,10 @@ import TransactionHistory from '../../../components/common/Transactionistory';
 const Home = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const username = 'Umair Ahmed';
+  const username = useSelector(state=> state.wallet.Name);
   const sendButton = () => {
     navigation.navigate('Send');
   };
-
   const address = useSelector(state => state.wallet.address);
   const receiveButton = () => {
     console.log('Receive Button pressed');
@@ -98,6 +97,23 @@ const Home = () => {
           }}>
           <Box>
             <Heading style={{fontSize: FONT_SIZE(18), color: '#D66B00'}}>
+              UserName:
+            </Heading>
+          </Box>
+          <Box>
+            <Heading style={{fontSize: FONT_SIZE(25), color: '#D66B00'}}>
+              {username}
+            </Heading>
+          </Box>
+        </Box>
+        <Box
+          style={{
+            flex: 0.2,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+          <Box>
+            <Heading style={{fontSize: FONT_SIZE(18), color: '#D66B00'}}>
               Total Balance
             </Heading>
           </Box>
@@ -155,7 +171,7 @@ const Home = () => {
           </Button>
         </Box>
         <Box marginTop={30} justifyContent="center" alignItems="center">
-          <Heading color="#D66B00">Transaction histroy</Heading>
+          <Heading color="#D66B00">Sent histroy</Heading>
         </Box>
         <TransactionHistory></TransactionHistory>
       </ImageBackground>

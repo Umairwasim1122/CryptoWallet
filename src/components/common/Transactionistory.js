@@ -13,7 +13,7 @@ const TransactionHistory = () => {
   console.log(transactions);
   const renderItem = ({item}) => (
     <Box style={styles.transactionItem}>
-      <Box width={40} justifyContent="center" alignItems="center">
+      <Box  width={40} justifyContent="center" alignItems="center">
         <Icon color={'#FF7006'} size="xl" as={Send}></Icon>
       </Box>
       <Box justifyContent="center">

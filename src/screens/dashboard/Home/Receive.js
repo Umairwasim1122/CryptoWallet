@@ -14,8 +14,8 @@ import {
   WIDTH_BASE_RATIO,
   FONT_SIZE,
 } from '../../../buisnessLogics/utils/helpers';
-import {ArrowLeft} from 'lucide-react-native';
-
+import {ArrowLeft,Copy} from 'lucide-react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 const Receive = () => {
   const navigation = useNavigation();
   const username = 'Umair Ahmed';
@@ -25,7 +25,9 @@ const Receive = () => {
   const backbutton = () => {
     navigation.navigate('BottomTabs');
   };
-
+  const copyToClipboard = () => {
+    Clipboard.setString(address);
+  };
   return (
     <Box style={{flex: 1}}>
       <ImageBackground
@@ -119,6 +121,19 @@ const Receive = () => {
               }}>
               {address}
             </Heading>
+          </Box>
+          <Box alignItems='center' marginTop={20}  >
+            <Button
+              size="xs"
+              onPress={copyToClipboard}
+              style={{
+                backgroundColor: '#D66B00',
+                borderRadius: 10,
+                paddingHorizontal: 20,
+                paddingVertical: 10,
+              }}>
+              <ButtonIcon as={Copy} color="#FFF" />
+            </Button>
           </Box>
         </Box>
       </ImageBackground>

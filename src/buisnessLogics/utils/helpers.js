@@ -77,3 +77,7 @@ export const PhoneNumberValidate = phone_number => {
   }
   return phone_number;
 };
+export const weiToEther = wei => wei / 1e18;
+
+export const isSentTransaction = (from, address) => 
+  from.toLowerCase() === address.toLowerCase();

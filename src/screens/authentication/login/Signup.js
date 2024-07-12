@@ -22,11 +22,8 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import {ArrowLeft, Eye, ArrowRight, EyeOff} from 'lucide-react-native';
 import {useDispatch} from 'react-redux';
-import {
-  setWalletName,
-  setPassword,
-  setConfirmPassword,
-} from '../../../buisnessLogics/redux/slice/UserSlice';
+import { setName, setUserPassword } from '../../../buisnessLogics/redux/slice/Walletdata'; // Correct import
+
 const Signup = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -64,10 +61,8 @@ const Signup = () => {
 
   const handleSignup = () => {
     if (validate()) {
-      console.log('Wallet Name:', walletName);
-      console.log('Password:', password);
-      console.log('Confirm Password:', confirmPassword);
-      console.log('Terms Accepted:', checked);
+      dispatch(setName(walletName));
+      dispatch(setUserPassword(password));
       navigation.navigate('SecureAccount');
     }
   };
@@ -166,7 +161,7 @@ const Signup = () => {
               style={{backgroundColor: '#FFFF'}}
               width={WIDTH_BASE_RATIO(330)}>
               <InputField
-                color='#D66B00'
+                color="#D66B00"
                 fontSize={FONT_SIZE(12)}
                 placeholder="Give your wallet a unique name"
                 placeholderTextColor={'#D2B48C'}
@@ -184,7 +179,7 @@ const Signup = () => {
               style={{backgroundColor: '#FFFF'}}
               width={WIDTH_BASE_RATIO(330)}>
               <InputField
-                color='#D66B00'
+                color="#D66B00"
                 fontSize={FONT_SIZE(12)}
                 placeholder="Enter new Password"
                 placeholderTextColor={'#D2B48C'}
@@ -210,7 +205,7 @@ const Signup = () => {
               style={{backgroundColor: '#FFFF'}}
               width={WIDTH_BASE_RATIO(330)}>
               <InputField
-                color='#D66B00'
+                color="#D66B00"
                 fontSize={FONT_SIZE(12)}
                 placeholder="Confirm Password"
                 placeholderTextColor={'#D2B48C'}
@@ -247,7 +242,7 @@ const Signup = () => {
                 />
               </CheckboxIndicator>
               <CheckboxLabel
-              color='#D66B00'
+                color="#D66B00"
                 fontSize={FONT_SIZE(13)}
                 width={WIDTH_BASE_RATIO(300)}
                 lineHeight={20}

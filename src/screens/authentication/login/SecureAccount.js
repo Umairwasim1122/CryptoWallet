@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {StyleSheet} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {StyleSheet, ActivityIndicator} from 'react-native';
 import {
   Box,
   Button,
@@ -18,14 +18,20 @@ import {useNavigation} from '@react-navigation/native';
 const SecureAccount = () => {
   const navigation = useNavigation();
   const [numWords, setNumWords] = useState(12);
+  const [loading, setLoading] = useState(false); // State to manage loading state
 
   const backbutton = () => {
     navigation.navigate('Signup');
   };
 
   const handleWordsSelection = words => {
+    setLoading(true); // Set loading to true when navigating
     setNumWords(words);
-    navigation.navigate('Create2fa', {numWords: words});
+
+    setTimeout(() => {
+      navigation.navigate('Create2fa', {numWords: words});
+      setLoading(false); // Set loading to false after navigation
+    }, 1000); // Simulating navigation delay for demo
   };
 
   return (
@@ -45,7 +51,7 @@ const SecureAccount = () => {
               width={WIDTH_BASE_RATIO(80)}
               onPress={backbutton}
               style={{backgroundColor: '#FFFF'}}>
-              <ButtonIcon as={ArrowLeft} color="#D66B00"></ButtonIcon>
+              <ButtonIcon as={ArrowLeft} color="#D66B00" />
             </Button>
           </Box>
           <Box
@@ -62,7 +68,11 @@ const SecureAccount = () => {
           </Box>
         </Box>
         <Box
-          style={{justifyContent: 'center', alignItems: 'center', flex: 0.2}}>
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            flex: 0.2,
+          }}>
           <Heading
             style={{fontSize: FONT_SIZE(18), fontWeight: '800'}}
             color="#D66B00">
@@ -70,7 +80,11 @@ const SecureAccount = () => {
           </Heading>
         </Box>
         <Box
-          style={{justifyContent: 'center', alignItems: 'center', flex: 0.6}}>
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            flex: 0.6,
+          }}>
           <Heading
             paddingHorizontal={'5%'}
             textAlign="center"
@@ -87,40 +101,50 @@ const SecureAccount = () => {
         <Box
           style={{
             flex: 0.2,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
             paddingHorizontal: '20%',
           }}>
-          <Button
-            style={{
-              height: HEIGHT_BASE_RATIO(80),
-              flexDirection: 'column',
-              alignItems: 'center',
-              backgroundColor: '#562B00',
-            }}
-            onPress={() => handleWordsSelection(12)}>
-            <Heading style={{fontSize: FONT_SIZE(15), color: '#FFFF'}}>
-              12
-            </Heading>
-            <Heading style={{fontSize: FONT_SIZE(16), color: '#FFFF'}}>
-              Words
-            </Heading>
-          </Button>
-          <Button
-            style={{
-              height: HEIGHT_BASE_RATIO(80),
-              flexDirection: 'column',
-              alignItems: 'center',
-              backgroundColor: '#562B00',
-            }}
-            onPress={() => handleWordsSelection(24)}>
-            <Heading style={{fontSize: FONT_SIZE(15), color: '#FFFF'}}>
-              24
-            </Heading>
-            <Heading style={{fontSize: FONT_SIZE(16), color: '#FFFF'}}>
-              Words
-            </Heading>
-          </Button>
+          {/* Show loading indicator instead of buttons when loading */}
+          {loading ? (
+            <Box  flex={1}
+              justifyContent="center"
+              alignItems="center">
+              <ActivityIndicator size="large" color="#562B00" />
+            </Box>
+          ) : (
+            <>
+              <Button
+                style={{
+                  height: HEIGHT_BASE_RATIO(80),
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent:'center',
+                  backgroundColor: '#562B00',
+                }}
+                onPress={() => handleWordsSelection(12)}>
+                <Heading style={{fontSize: FONT_SIZE(15), color: '#FFFF'}}>
+                  12
+                </Heading>
+                <Heading style={{fontSize: FONT_SIZE(16), color: '#FFFF'}}>
+                  Words
+                </Heading>
+              </Button>
+              {/* <Button
+                style={{
+                  height: HEIGHT_BASE_RATIO(80),
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  backgroundColor: '#562B00',
+                }}
+                onPress={() => handleWordsSelection(24)}>
+                <Heading style={{fontSize: FONT_SIZE(15), color: '#FFFF'}}>
+                  24
+                </Heading>
+                <Heading style={{fontSize: FONT_SIZE(16), color: '#FFFF'}}>
+                  Words
+                </Heading>
+              </Button> */}
+            </>
+          )}
         </Box>
       </ImageBackground>
     </Box>

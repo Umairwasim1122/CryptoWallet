@@ -1,11 +1,11 @@
-// wallet.js Redux slice
-
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   address: '',
   privateKey: '',
   mnemonics: '',
+  Name: '',
+  Userpassword: '',
   balance: '0 ETH',
   transactions: [],
 };
@@ -16,6 +16,12 @@ const WalletSlice = createSlice({
   reducers: {
     setUserAddress(state, action) {
       state.address = action.payload;
+    },
+    setName(state, action) {
+      state.Name = action.payload;
+    },
+    setUserPassword(state, action) {
+      state.Userpassword = action.payload;
     },
     setUserPrivateKey(state, action) {
       state.privateKey = action.payload;
@@ -42,5 +48,8 @@ export const {
   setWalletBalance,
   addTransaction,
   clearTransactions,
+  setName,
+  setUserPassword,
 } = WalletSlice.actions;
+
 export default WalletSlice.reducer;
