@@ -19,29 +19,41 @@ import {ArrowUpCircleIcon, ArrowDownCircleIcon} from 'lucide-react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {setWalletBalance} from '../../../buisnessLogics/redux/slice/Walletdata';
 import TransactionHistory from '../../../components/common/Transactionistory';
+import CryptoJS from 'crypto-js';
+
 const Home = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const username = useSelector(state=> state.wallet.Name);
+  const username = useSelector(state => state.wallet.Name);
+  const encryptedAddress = useSelector(state => state.wallet.address);
+  const Password = useSelector(state => state.wallet.Userpassword);
+  const [balance, setBalance] = useState('Loading...');
+  const [address, setAddress] = useState('');
+
   const sendButton = () => {
     navigation.navigate('Send');
   };
-  const address = useSelector(state => state.wallet.address);
+
   const receiveButton = () => {
     console.log('Receive Button pressed');
     navigation.navigate('Receive', {});
   };
-  const [balance, setBalance] = useState('Loading...');
+
+  // Function to decrypt data
+  const decryptData = (encryptedData, password) => {
+    const bytes = CryptoJS.AES.decrypt(encryptedData, password);
+    return bytes.toString(CryptoJS.enc.Utf8);
+  };
 
   // Function to fetch balance
-  const fetchBalance = async () => {
+  const fetchBalance = async (decryptedAddress) => {
     try {
       const response = await axios.post(
         'https://sepolia.infura.io/v3/7aae9efdf2944cb2abd77d6d04a34b5b',
         {
           jsonrpc: '2.0',
           method: 'eth_getBalance',
-          params: [address, 'latest'],
+          params: [decryptedAddress, 'latest'],
           id: 1,
         },
       );
@@ -59,8 +71,10 @@ const Home = () => {
   };
 
   useEffect(() => {
-    fetchBalance(); // Fetch balance on component mount
-  }, []);
+    const decryptedAddress = decryptData(encryptedAddress, Password);
+    setAddress(decryptedAddress);
+    fetchBalance(decryptedAddress); // Fetch balance on component mount
+  }, [encryptedAddress, Password]);
 
   return (
     <Box style={{flex: 1}}>
@@ -133,7 +147,7 @@ const Home = () => {
             justifyContent: 'center',
           }}>
           <Heading color="#D66B00" fontSize={18}>
-            Adress:
+            Address:
           </Heading>
           <Heading
             paddingHorizontal={5}
@@ -171,9 +185,9 @@ const Home = () => {
           </Button>
         </Box>
         <Box marginTop={30} justifyContent="center" alignItems="center">
-          <Heading color="#D66B00">Sent histroy</Heading>
+          <Heading color="#D66B00">Sent history</Heading>
         </Box>
-        <TransactionHistory></TransactionHistory>
+        <TransactionHistory />
       </ImageBackground>
     </Box>
   );

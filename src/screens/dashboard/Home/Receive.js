@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   Box,
   Button,
@@ -14,20 +14,41 @@ import {
   WIDTH_BASE_RATIO,
   FONT_SIZE,
 } from '../../../buisnessLogics/utils/helpers';
-import {ArrowLeft,Copy} from 'lucide-react-native';
+import {ArrowLeft, Copy} from 'lucide-react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
+import CryptoJS from 'crypto-js'; // Import CryptoJS for encryption/decryption
+
 const Receive = () => {
   const navigation = useNavigation();
-  const username = 'Umair Ahmed';
   const balance = useSelector(state => state.wallet.balance);
-  const address = useSelector(state => state.wallet.address);
-  console.log(address);
+  const encryptedAddress = useSelector(state => state.wallet.address); // Retrieve encrypted address
+  const password = useSelector(state => state.wallet.Userpassword); // Retrieve password/key used for encryption
+
+  const [decryptedAddress, setDecryptedAddress] = useState('');
+
+  useEffect(() => {
+    decryptAddress();
+  }, []);
+  const decryptAddress = () => {
+    try {
+      const bytes = CryptoJS.AES.decrypt(encryptedAddress, password);
+      const decryptedAddress = bytes.toString(CryptoJS.enc.Utf8);
+      setDecryptedAddress(decryptedAddress);
+
+      console.log(decryptedAddress);
+    } catch (error) {
+      console.error('Error decrypting address:', error);
+    }
+  };
+
   const backbutton = () => {
     navigation.navigate('BottomTabs');
   };
+
   const copyToClipboard = () => {
-    Clipboard.setString(address);
+    Clipboard.setString(decryptedAddress); // Copy decrypted address to clipboard
   };
+
   return (
     <Box style={{flex: 1}}>
       <ImageBackground
@@ -92,37 +113,45 @@ const Receive = () => {
             Scan the QR code to receive coins
           </Heading>
 
-          <Box
-            justifyContent="center"
-            alignItems="center"
-            width={'60%'}
-            backgroundColor="#FEEEE2"
-            borderRadius={15}
-            padding={10}>
-            <QRCode
-              value={address} // The data to encode into QR code
-              size={150} // Size of the QR code
-            />
-          </Box>
+          {decryptedAddress ? (
+            <Box
+              justifyContent="center"
+              alignItems="center"
+              width={'60%'}
+              backgroundColor="#FEEEE2"
+              borderRadius={15}
+              padding={10}>
+              <QRCode
+                value={decryptedAddress} // The data to encode into QR code
+                size={150} // Size of the QR code
+              />
+            </Box>
+          ) : (
+            <Heading style={{fontSize: FONT_SIZE(14), color: '#D66B00'}}>
+              Decrypting address...
+            </Heading>
+          )}
 
           {/* Address Display */}
-          <Box
-            width={'60%'}
-            backgroundColor="#FEEEE2"
-            borderRadius={15}
-            marginTop={20}>
-            <Heading
-              style={{
-                lineHeight: 18,
-                fontSize: FONT_SIZE(14),
-                color: '#D66B00',
-                padding: 10,
-                textAlign: 'center',
-              }}>
-              {address}
-            </Heading>
-          </Box>
-          <Box alignItems='center' marginTop={20}  >
+          {decryptedAddress && (
+            <Box
+              width={'60%'}
+              backgroundColor="#FEEEE2"
+              borderRadius={15}
+              marginTop={20}>
+              <Heading
+                style={{
+                  lineHeight: 18,
+                  fontSize: FONT_SIZE(14),
+                  color: '#D66B00',
+                  padding: 10,
+                  textAlign: 'center',
+                }}>
+                {decryptedAddress}
+              </Heading>
+            </Box>
+          )}
+          <Box alignItems="center" marginTop={20}>
             <Button
               size="xs"
               onPress={copyToClipboard}

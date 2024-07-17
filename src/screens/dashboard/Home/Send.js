@@ -12,22 +12,24 @@ import {
   InputField,
   Spinner,
   ButtonIcon,
-  Icon,
 } from '@gluestack-ui/themed';
-import {ArrowLeft, Scan, ScanLine} from 'lucide-react-native';
+import {ArrowLeft} from 'lucide-react-native';
 import {addTransaction} from '../../../buisnessLogics/redux/slice/Walletdata';
 import {useNavigation} from '@react-navigation/native';
 import {
+  FONT_SIZE,
   HEIGHT_BASE_RATIO,
   WIDTH_BASE_RATIO,
-  FONT_SIZE,
 } from '../../../buisnessLogics/utils/helpers';
+import CryptoJS from 'crypto-js'; // Import CryptoJS for encryption/decryption
 
 const SendTransaction = () => {
   const privateKey = useSelector(state => state.wallet.privateKey);
   const balance = useSelector(state => state.wallet.balance);
+  const userPassword = useSelector(state => state.wallet.Userpassword); // Assuming this is the password used for encryption
+console.log(userPassword)
   const dispatch = useDispatch();
-
+  const navigation = useNavigation();
   const [toAddress, setToAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
@@ -35,40 +37,29 @@ const SendTransaction = () => {
   const [gasFee, setGasFee] = useState('');
   const [toAddressError, setToAddressError] = useState('');
   const [amountError, setAmountError] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [decryptedPrivateKey, setDecryptedPrivateKey] = useState('');
 
   const infuraProjectId = '7aae9efdf2944cb2abd77d6d04a34b5b';
   const provider = new ethers.InfuraProvider('sepolia', infuraProjectId);
 
   useEffect(() => {
-    const calculateGasFee = async () => {
-      try {
-        if (amount && toAddress && privateKey && provider) {
-          const wallet = new ethers.Wallet(privateKey, provider);
-          const amountWei = ethers.parseEther(amount);
+    decryptPrivateKey();
+  }, []);
 
-          // Estimate gas
-          const gasLimit = await wallet.estimateGas({
-            to: toAddress,
-            value: amountWei,
-          });
+  // Decrypt private key function
+  const decryptPrivateKey = () => {
+    try {
+      const bytes = CryptoJS.AES.decrypt(privateKey, userPassword);
+      const decryptedPrivateKey = bytes.toString(CryptoJS.enc.Utf8);
+      setDecryptedPrivateKey(decryptedPrivateKey);
+    } catch (error) {
+      console.error('Error decrypting private key:', error);
+    }
+  };
 
-          // Fetch gas price
-          const feeData = await provider.getFeeData();
-          const gasPrice = feeData.gasPrice;
-
-          // Calculate fee
-          const feeInEth = ethers.formatEther(gasPrice);
-
-          setGasFee(feeInEth);
-        }
-      } catch (error) {
-        console.error('Error calculating gas fee:', error);
-      }
-    };
-
-    calculateGasFee();
-  }, [amount, toAddress, privateKey, provider]);
-
+  // Function to validate inputs (address and amount)
   const validateInputs = () => {
     let valid = true;
     if (!toAddress) {
@@ -86,15 +77,21 @@ const SendTransaction = () => {
     return valid;
   };
 
-  const navigation = useNavigation();
+  // Function to send transaction
   const sendTransaction = async () => {
     if (!validateInputs()) {
       return;
     }
 
+    // Verify password
+    if (password !== userPassword) {
+      Alert.alert('Error', 'Incorrect password. Please try again.');
+      return;
+    }
+
     try {
       setLoading(true);
-      const wallet = new ethers.Wallet(privateKey, provider);
+      const wallet = new ethers.Wallet(decryptedPrivateKey, provider);
       const amountWei = ethers.parseEther(amount);
       const tx = {
         to: toAddress,
@@ -109,7 +106,7 @@ const SendTransaction = () => {
         amount,
         toAddress,
         gasFee,
-        (timestamp = new Date().toISOString()),
+        new Date().toISOString(),
       ];
 
       dispatch(addTransaction(transactionDetails));
@@ -120,9 +117,12 @@ const SendTransaction = () => {
       setLoading(false);
     }
   };
+
+  // Navigate back function
   const backbutton = () => {
     navigation.navigate('BottomTabs');
   };
+
   return (
     <Box style={{flex: 1}}>
       <ImageBackground
@@ -219,6 +219,27 @@ const SendTransaction = () => {
             <Text style={styles.errorText}>{amountError}</Text>
           ) : null}
         </Box>
+
+        {/* Password input */}
+        <Input borderColor="#D2B48C" borderWidth={2} borderRadius={20}>
+          <InputField
+            style={styles.input}
+            placeholderTextColor={'#D2B48C'}
+            placeholder="Password"
+            value={password}
+            onChangeText={text => {
+              setPassword(text);
+              if (text) {
+                setPasswordError('');
+              }
+            }}
+            secureTextEntry={true}
+          />
+        </Input>
+        {passwordError ? (
+          <Text style={styles.errorText}>{passwordError}</Text>
+        ) : null}
+
         {gasFee !== '' && (
           <Text style={styles.gasFeeText}>Gas Fee: {gasFee} ETH</Text>
         )}

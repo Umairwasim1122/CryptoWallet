@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
-import {useDispatch} from 'react-redux';
-import {ethers} from 'ethers';
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { ethers } from 'ethers';
 import {
   setUserAddress,
   setUserPrivateKey,
@@ -23,6 +23,8 @@ import {
   InputField,
   Spinner,
 } from '@gluestack-ui/themed';
+import CryptoJS from 'crypto-js';
+import 'react-native-get-random-values';
 
 const Restore = () => {
   const [mnemonics, setMnemonics] = useState('');
@@ -30,14 +32,19 @@ const Restore = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
+  const Password = useSelector((state) => state.wallet.Userpassword);
 
-  const validateMnemonics = mnemonics => {
+  const validateMnemonics = (mnemonics) => {
     try {
       ethers.Wallet.fromPhrase(mnemonics);
       return true;
     } catch {
       return false;
     }
+  };
+
+  const encryptData = (data, password) => {
+    return CryptoJS.AES.encrypt(data, password).toString();
   };
 
   const restoreAccount = () => {
@@ -59,65 +66,54 @@ const Restore = () => {
       console.log('Mnemonics:', mnemonics);
       const wallet = ethers.Wallet.fromPhrase(mnemonics);
 
-      dispatch(setUserAddress(wallet.address));
-      dispatch(setUserPrivateKey(wallet.privateKey));
-      dispatch(setUserMnemonics(mnemonics));
+      const encryptedAddress = encryptData(wallet.address, Password);
+      const encryptedPrivateKey = encryptData(wallet.privateKey, Password);
+      const encryptedMnemonics = encryptData(mnemonics, Password);
 
-      // Navigate to Home screen
+      dispatch(setUserAddress(encryptedAddress));
+      dispatch(setUserPrivateKey(encryptedPrivateKey));
+      dispatch(setUserMnemonics(encryptedMnemonics));
+
+      // // Navigate to Home screen
       navigation.navigate('BottomTabs');
     } catch (error) {
       console.error('Error restoring wallet:', error.message);
       Alert.alert(
         'Error',
-        'Failed to restore account. Please check your mnemonic phrase and try again.',
+        'Failed to restore account. Please check your mnemonic phrase and try again.'
       );
-    } 
-    finally {
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box style={{flex: 1}}>
+    <Box style={{ flex: 1 }}>
       <ImageBackground
         source={require('../../../Assets/Images/background.jpg')}
-        style={{flex: 1}}>
+        style={{ flex: 1 }}
+      >
         {/* Header */}
-        <Box
-          style={{
-            height: HEIGHT_BASE_RATIO(80),
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'row',
-          }}>
-          <Box
-            style={{
-              flex: 0.45,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-            <Heading
-              style={{fontSize: FONT_SIZE(20), fontWeight: '800'}}
-              color="#D66B00">
+        <Box style={styles.header}>
+          <Box style={styles.headerContent}>
+            <Heading style={styles.heading} color="#D66B00">
               Currency App
             </Heading>
           </Box>
         </Box>
-        <Box
-          height={HEIGHT_BASE_RATIO(200)}
-          width={WIDTH_BASE_RATIO(350)}
-          marginHorizontal={WIDTH_BASE_RATIO(20)}>
+        <Box style={styles.inputBox}>
           <Input
             borderColor="#D2B48C"
             borderWidth={2}
             borderRadius={20}
-            height={100}>
+            height={100}
+          >
             <InputField
               color={'#D66B00'}
               placeholderTextColor={'#D2B48C'}
               placeholder="Enter your mnemonic phrase"
               value={mnemonics}
-              onChangeText={text => {
+              onChangeText={(text) => {
                 setMnemonics(text);
                 if (error) setError('');
               }}
@@ -126,12 +122,7 @@ const Restore = () => {
           </Input>
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
         </Box>
-        <Box
-          height={HEIGHT_BASE_RATIO(200)}
-          width={WIDTH_BASE_RATIO(200)}
-          marginHorizontal={WIDTH_BASE_RATIO(90)}
-          alignItems="center"
-          justifyContent="center">
+        <Box style={styles.buttonBox}>
           {loading ? (
             <Spinner />
           ) : (
@@ -146,15 +137,32 @@ const Restore = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
+  header: {
+    height: HEIGHT_BASE_RATIO(80),
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
   },
-  input: {
-    height: 80,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 16,
-    paddingHorizontal: 8,
+  headerContent: {
+    flex: 0.45,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  heading: {
+    fontSize: FONT_SIZE(20),
+    fontWeight: '800',
+  },
+  inputBox: {
+    height: HEIGHT_BASE_RATIO(200),
+    width: WIDTH_BASE_RATIO(350),
+    marginHorizontal: WIDTH_BASE_RATIO(20),
+  },
+  buttonBox: {
+    height: HEIGHT_BASE_RATIO(200),
+    width: WIDTH_BASE_RATIO(200),
+    marginHorizontal: WIDTH_BASE_RATIO(90),
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   errorText: {
     color: 'red',

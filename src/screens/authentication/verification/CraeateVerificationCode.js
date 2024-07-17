@@ -1,19 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {StyleSheet, Text} from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { Box, Button, ButtonIcon, Heading, ImageBackground, Spinner, Toast } from '@gluestack-ui/themed';
-import { HEIGHT_BASE_RATIO, WIDTH_BASE_RATIO, FONT_SIZE } from '../../../buisnessLogics/utils/helpers';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { ArrowLeft, ArrowRight, Copy } from 'lucide-react-native';
-import { useDispatch } from 'react-redux';
-import { clearTransactions, setUserAddress, setUserMnemonics, setUserPrivateKey } from '../../../buisnessLogics/redux/slice/Walletdata';
-import { generateWallet } from '../../../buisnessLogics/utils/generateWallet';
+import CryptoJS from 'crypto-js';
+import {
+  Box,
+  Button,
+  ButtonIcon,
+  Heading,
+  ImageBackground,
+  Spinner,
+  Toast,
+} from '@gluestack-ui/themed';
+import {
+  HEIGHT_BASE_RATIO,
+  WIDTH_BASE_RATIO,
+  FONT_SIZE,
+} from '../../../buisnessLogics/utils/helpers';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {ArrowLeft, ArrowRight, Copy} from 'lucide-react-native';
+import {useSelector, useDispatch} from 'react-redux';
+import {
+  clearTransactions,
+  setUserAddress,
+  setUserMnemonics,
+  setUserPrivateKey,
+} from '../../../buisnessLogics/redux/slice/Walletdata';
+import {generateWallet} from '../../../buisnessLogics/utils/generateWallet';
 
 const Verification = () => {
+  const Password = useSelector(state => state.wallet.Userpassword);
+
   const route = useRoute();
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const { numWords } = route.params;
+  const {numWords} = route.params;
   const [mnemonic, setMnemonic] = useState('');
   const [numberedMnemonic, setNumberedMnemonic] = useState([]);
   const [privateKey, setPrivateKey] = useState('');
@@ -24,18 +44,14 @@ const Verification = () => {
   useEffect(() => {
     const initializeWallet = async () => {
       try {
-        const { mnemonic, numberedWords, privateKey, address } = await generateWallet();
+        const {mnemonic, numberedWords, privateKey, address} =
+          await generateWallet();
         setMnemonic(mnemonic);
         setNumberedMnemonic(numberedWords);
         setPrivateKey(privateKey);
         setAddress(address);
       } catch (error) {
         console.error(error.message);
-        Toast.show({
-          title: 'Error',
-          status: 'error',
-          description: 'Failed to generate wallet.',
-        });
       } finally {
         setLoading(false);
       }
@@ -54,30 +70,53 @@ const Verification = () => {
   const handleNextButton = async () => {
     setRestoring(true);
     try {
-      dispatch(setUserAddress(address));
-      dispatch(setUserMnemonics(mnemonic));
-      dispatch(setUserPrivateKey(privateKey));
+      // Generate wallet data
+      const {mnemonic, privateKey, address} = await generateWallet();
+      console.log('Wallet Generated');
+
+      // // Encrypt data
+      const encryptedMnemonic = CryptoJS.AES.encrypt(
+        mnemonic,
+        Password,
+      ).toString();
+      const encryptedPrivateKey = CryptoJS.AES.encrypt(
+        privateKey,
+        Password,
+      ).toString();
+      const encryptedAddress = CryptoJS.AES.encrypt(
+        address,
+        Password,
+      ).toString();
+
+      // // Dispatch encrypted data to Redux
+      dispatch(setUserAddress(encryptedAddress));
+      dispatch(setUserMnemonics(encryptedMnemonic));
+      dispatch(setUserPrivateKey(encryptedPrivateKey));
       dispatch(clearTransactions());
       navigation.navigate('BottomTabs');
     } catch (error) {
       console.error(error.message);
-      Toast.show({
-        title: 'Error',
-        status: 'error',
-        description: 'Failed to restore account.',
-      });
     } finally {
       setRestoring(false);
     }
   };
+  // const decryptData = (encryptedData, password) => {
+  //   const bytes = CryptoJS.AES.decrypt(encryptedData, password);
+  //   return bytes.toString(CryptoJS.enc.Utf8);
+  // };
 
   return (
-    <Box style={{ flex: 1 }}>
-      <ImageBackground source={require('../../../Assets/Images/background.jpg')} style={{ flex: 1 }}>
+    <Box style={{flex: 1}}>
+      <ImageBackground
+        source={require('../../../Assets/Images/background.jpg')}
+        style={{flex: 1}}>
         {/* Header */}
         <Box style={styles.header}>
           <Box style={styles.backButtonContainer}>
-            <Button width={WIDTH_BASE_RATIO(80)} onPress={handleBackButton} style={styles.backButton}>
+            <Button
+              width={WIDTH_BASE_RATIO(80)}
+              onPress={handleBackButton}
+              style={styles.backButton}>
               <ButtonIcon as={ArrowLeft} color="#D66B00" />
             </Button>
           </Box>
@@ -93,7 +132,8 @@ const Verification = () => {
             SAVE YOUR BACKUP PHRASE
           </Heading>
           <Heading style={styles.subHeading} textAlign="center" color="#D2B48C">
-            This is your {numWords}-word seed phrase. You will be asked to reenter this phrase in the correct order on the next step.
+            This is your {numWords}-word seed phrase. You will be asked to
+            reenter this phrase in the correct order on the next step.
           </Heading>
         </Box>
         <Box style={styles.gridContainer}>
@@ -108,7 +148,10 @@ const Verification = () => {
           )}
         </Box>
         <Box style={styles.copyButtonContainer}>
-          <Button size="xs" onPress={handleCopyToClipboard} style={styles.copyButton}>
+          <Button
+            size="xs"
+            onPress={handleCopyToClipboard}
+            style={styles.copyButton}>
             <ButtonIcon as={Copy} color="#FFF" />
           </Button>
         </Box>
@@ -116,7 +159,11 @@ const Verification = () => {
           {restoring ? (
             <Spinner size="lg" color="#D66B00" />
           ) : (
-            <Button backgroundColor="#562B00" size="md" borderRadius={10} onPress={handleNextButton}>
+            <Button
+              backgroundColor="#562B00"
+              size="md"
+              borderRadius={10}
+              onPress={handleNextButton}>
               <ButtonIcon size="md" as={ArrowRight} />
             </Button>
           )}
