@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { ethers } from 'ethers';
+import React, {useState} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+import {ethers} from 'ethers';
 import {
   setUserAddress,
   setUserPrivateKey,
   setUserMnemonics,
+  setUserPassword,
 } from '../../../buisnessLogics/redux/slice/Walletdata';
 import {Alert, StyleSheet, Text} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -25,6 +26,7 @@ import {
 } from '@gluestack-ui/themed';
 import CryptoJS from 'crypto-js';
 import 'react-native-get-random-values';
+import PasswordModal from '../../../components/common/PasswordModel'; // Make sure the import path is correct
 
 const Restore = () => {
   const [mnemonics, setMnemonics] = useState('');
@@ -32,67 +34,80 @@ const Restore = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
-  const Password = useSelector((state) => state.wallet.Userpassword);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const Password = useSelector(state => state.wallet.Userpassword);
 
-  const validateMnemonics = (mnemonics) => {
-    try {
-      ethers.Wallet.fromPhrase(mnemonics);
-      return true;
-    } catch {
-      return false;
-    }
+  const validateMnemonics = async mnemonics => {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        try {
+          ethers.Wallet.fromPhrase(mnemonics);
+          resolve(true);
+        } catch {
+          resolve(false);
+        }
+      }, 0);
+    });
   };
 
   const encryptData = (data, password) => {
     return CryptoJS.AES.encrypt(data, password).toString();
   };
 
-  const restoreAccount = () => {
+  const restoreAccount = async () => {
     setLoading(true);
 
     if (mnemonics.trim() === '') {
       setError('Enter Mnemonics phrase.');
       setLoading(false);
       return;
-    } else if (!validateMnemonics(mnemonics)) {
+    }
+
+    const isValid = await validateMnemonics(mnemonics);
+
+    if (!isValid) {
       setError('Invalid mnemonic phrase.');
       setLoading(false);
       return;
     }
 
     setError('');
+    setModalVisible(true);
+    setLoading(false);
+  };
 
-    try {
-      console.log('Mnemonics:', mnemonics);
-      const wallet = ethers.Wallet.fromPhrase(mnemonics);
+  const handleSavePassword = newPassword => {
+    setLoading(true);
+    setModalVisible(false);
+    setImmediate(() => {
+      try {
+        console.log('Mnemonics:', mnemonics);
+        const wallet = ethers.Wallet.fromPhrase(mnemonics);
 
-      const encryptedAddress = encryptData(wallet.address, Password);
-      const encryptedPrivateKey = encryptData(wallet.privateKey, Password);
-      const encryptedMnemonics = encryptData(mnemonics, Password);
+        const encryptedAddress = encryptData(wallet.address, newPassword);
+        const encryptedPrivateKey = encryptData(wallet.privateKey, newPassword);
+        const encryptedMnemonics = encryptData(mnemonics, newPassword);
 
-      dispatch(setUserAddress(encryptedAddress));
-      dispatch(setUserPrivateKey(encryptedPrivateKey));
-      dispatch(setUserMnemonics(encryptedMnemonics));
+        dispatch(setUserAddress(encryptedAddress));
+        dispatch(setUserPrivateKey(encryptedPrivateKey));
+        dispatch(setUserMnemonics(encryptedMnemonics));
+        dispatch(setUserPassword(newPassword)); // Save new password to Redux
 
-      // // Navigate to Home screen
-      navigation.navigate('BottomTabs');
-    } catch (error) {
-      console.error('Error restoring wallet:', error.message);
-      Alert.alert(
-        'Error',
-        'Failed to restore account. Please check your mnemonic phrase and try again.'
-      );
-    } finally {
-      setLoading(false);
-    }
+        // Navigate to Home screen
+        navigation.navigate('BottomTabs');
+      } catch (error) {
+        console.error('Error restoring wallet:', error.message);
+      } finally {
+        setLoading(false);
+      }
+    });
   };
 
   return (
-    <Box style={{ flex: 1 }}>
+    <Box style={{flex: 1}}>
       <ImageBackground
         source={require('../../../Assets/Images/background.jpg')}
-        style={{ flex: 1 }}
-      >
+        style={{flex: 1}}>
         {/* Header */}
         <Box style={styles.header}>
           <Box style={styles.headerContent}>
@@ -106,14 +121,13 @@ const Restore = () => {
             borderColor="#D2B48C"
             borderWidth={2}
             borderRadius={20}
-            height={100}
-          >
+            height={100}>
             <InputField
               color={'#D66B00'}
               placeholderTextColor={'#D2B48C'}
               placeholder="Enter your mnemonic phrase"
               value={mnemonics}
-              onChangeText={(text) => {
+              onChangeText={text => {
                 setMnemonics(text);
                 if (error) setError('');
               }}
@@ -123,15 +137,27 @@ const Restore = () => {
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
         </Box>
         <Box style={styles.buttonBox}>
-          {loading ? (
-            <Spinner />
-          ) : (
-            <Button backgroundColor="#D66B00" onPress={restoreAccount}>
+          <Button
+            backgroundColor="#D66B00"
+            onPress={restoreAccount}
+            disabled={loading}>
+            {loading ? (
+              <Spinner color="white" />
+            ) : (
               <ButtonText>Restore Account</ButtonText>
-            </Button>
-          )}
+            )}
+          </Button>
         </Box>
       </ImageBackground>
+      <PasswordModal
+        visible={isModalVisible}
+        onClose={() => {
+          setModalVisible(false);
+          setLoading(false);
+        }}
+        onSave={handleSavePassword}
+        loading={loading} // Pass the loading state
+      />
     </Box>
   );
 };

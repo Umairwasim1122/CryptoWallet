@@ -1,7 +1,8 @@
 import React, {useState, useEffect} from 'react';
-import {StyleSheet, Alert, Text} from 'react-native';
+import {StyleSheet, Alert, Text, Modal, View} from 'react-native';
 import {useSelector, useDispatch} from 'react-redux';
 import {ethers} from 'ethers';
+import {ArrowLeft, Eye, ArrowRight, EyeOff} from 'lucide-react-native';
 import {
   Box,
   Button,
@@ -12,8 +13,8 @@ import {
   InputField,
   Spinner,
   ButtonIcon,
+  Icon,
 } from '@gluestack-ui/themed';
-import {ArrowLeft} from 'lucide-react-native';
 import {addTransaction} from '../../../buisnessLogics/redux/slice/Walletdata';
 import {useNavigation} from '@react-navigation/native';
 import {
@@ -21,13 +22,12 @@ import {
   HEIGHT_BASE_RATIO,
   WIDTH_BASE_RATIO,
 } from '../../../buisnessLogics/utils/helpers';
-import CryptoJS from 'crypto-js'; // Import CryptoJS for encryption/decryption
+import CryptoJS from 'crypto-js';
 
 const SendTransaction = () => {
   const privateKey = useSelector(state => state.wallet.privateKey);
   const balance = useSelector(state => state.wallet.balance);
-  const userPassword = useSelector(state => state.wallet.Userpassword); // Assuming this is the password used for encryption
-console.log(userPassword)
+  const userPassword = useSelector(state => state.wallet.Userpassword);
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const [toAddress, setToAddress] = useState('');
@@ -40,26 +40,12 @@ console.log(userPassword)
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [decryptedPrivateKey, setDecryptedPrivateKey] = useState('');
-
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [transactionApproved, setTransactionApproved] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const infuraProjectId = '7aae9efdf2944cb2abd77d6d04a34b5b';
   const provider = new ethers.InfuraProvider('sepolia', infuraProjectId);
 
-  useEffect(() => {
-    decryptPrivateKey();
-  }, []);
-
-  // Decrypt private key function
-  const decryptPrivateKey = () => {
-    try {
-      const bytes = CryptoJS.AES.decrypt(privateKey, userPassword);
-      const decryptedPrivateKey = bytes.toString(CryptoJS.enc.Utf8);
-      setDecryptedPrivateKey(decryptedPrivateKey);
-    } catch (error) {
-      console.error('Error decrypting private key:', error);
-    }
-  };
-
-  // Function to validate inputs (address and amount)
   const validateInputs = () => {
     let valid = true;
     if (!toAddress) {
@@ -77,21 +63,69 @@ console.log(userPassword)
     return valid;
   };
 
-  // Function to send transaction
+  const decryptPrivateKey = () => {
+    try {
+      const bytes = CryptoJS.AES.decrypt(privateKey, userPassword);
+      const decryptedKey = bytes.toString(CryptoJS.enc.Utf8);
+      setDecryptedPrivateKey(decryptedKey);
+      return decryptedKey;
+    } catch (error) {
+      setPasswordError('Incorrect password. Please try again.');
+      console.error('Error decrypting private key:', error);
+      return null;
+    }
+  };
+
+  const calculateGasFee = async () => {
+    try {
+      const decryptedKey = decryptPrivateKey();
+      if (!decryptedKey) return;
+
+      const wallet = new ethers.Wallet(decryptedPrivateKey, provider);
+      const amountWei = ethers.parseEther(amount);
+      const tx = {
+        to: toAddress,
+        value: amountWei,
+      };
+
+      const gasPrice = await provider.getGasPrice();
+      const estimatedGas = await wallet.estimateGas(tx);
+      const fee = ethers.formatEther(estimatedGas.mul(gasPrice));
+      setGasFee(fee);
+    } catch (error) {
+      console.log('Error calculating gas fee:', error);
+    }
+  };
+
   const sendTransaction = async () => {
     if (!validateInputs()) {
       return;
     }
 
-    // Verify password
-    if (password !== userPassword) {
-      Alert.alert('Error', 'Incorrect password. Please try again.');
-      return;
-    }
+    await calculateGasFee();
+    setShowPasswordModal(true);
+  };
 
+  const handleDecryptPrivateKey = () => {
+    try {
+      const bytes = CryptoJS.AES.decrypt(privateKey, password);
+      const decryptedKey = bytes.toString(CryptoJS.enc.Utf8);
+      setDecryptedPrivateKey(decryptedKey);
+      return decryptedKey;
+    } catch (error) {
+      setPasswordError('Incorrect password. Please try again.');
+      console.error('Error decrypting private key:', error);
+      return null;
+    }
+  };
+
+  const handleSendTransaction = async () => {
     try {
       setLoading(true);
-      const wallet = new ethers.Wallet(decryptedPrivateKey, provider);
+      const decryptedKey = handleDecryptPrivateKey();
+      if (!decryptedKey) return;
+
+      const wallet = new ethers.Wallet(decryptedKey, provider);
       const amountWei = ethers.parseEther(amount);
       const tx = {
         to: toAddress,
@@ -99,9 +133,9 @@ console.log(userPassword)
       };
       const txResponse = await wallet.sendTransaction(tx);
       setTransactionHash(txResponse.hash);
+      setTransactionApproved(true);
       Alert.alert('Transaction Sent');
 
-      // Save transaction details to Redux
       const transactionDetails = [
         amount,
         toAddress,
@@ -111,16 +145,30 @@ console.log(userPassword)
 
       dispatch(addTransaction(transactionDetails));
     } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to send transaction.');
+      Alert.alert('Failed to send transaction.');
       console.error('Error sending transaction:', error);
     } finally {
       setLoading(false);
+      setShowPasswordModal(false);
     }
   };
 
-  // Navigate back function
   const backbutton = () => {
     navigation.navigate('BottomTabs');
+  };
+
+  useEffect(() => {
+    let timer;
+    if (transactionApproved) {
+      timer = setTimeout(() => {
+        setTransactionApproved(false);
+      }, 3000);
+    }
+    return () => clearTimeout(timer);
+  }, [transactionApproved]);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -172,11 +220,6 @@ console.log(userPassword)
         <Box justifyContent="center" alignItems="center" marginTop={50}>
           <Heading style={styles.title}>Send Transaction</Heading>
         </Box>
-        {/* <Box height={30} justifyContent="center" alignItems="center">
-          <Button   backgroundColor="#D66B00">
-            <ButtonIcon as={ScanLine} />
-          </Button>
-        </Box> */}
         <Box
           height={200}
           justifyContent="space-evenly"
@@ -220,26 +263,6 @@ console.log(userPassword)
           ) : null}
         </Box>
 
-        {/* Password input */}
-        <Input borderColor="#D2B48C" borderWidth={2} borderRadius={20}>
-          <InputField
-            style={styles.input}
-            placeholderTextColor={'#D2B48C'}
-            placeholder="Password"
-            value={password}
-            onChangeText={text => {
-              setPassword(text);
-              if (text) {
-                setPasswordError('');
-              }
-            }}
-            secureTextEntry={true}
-          />
-        </Input>
-        {passwordError ? (
-          <Text style={styles.errorText}>{passwordError}</Text>
-        ) : null}
-
         {gasFee !== '' && (
           <Text style={styles.gasFeeText}>Gas Fee: {gasFee} ETH</Text>
         )}
@@ -255,6 +278,68 @@ console.log(userPassword)
             </Button>
           )}
         </Box>
+
+        {transactionApproved && (
+          <Box alignItems="center" marginTop={20}>
+            <Text style={styles.approvedText}>Transaction Approved</Text>
+          </Box>
+        )}
+
+        <Modal
+          transparent={true}
+          visible={showPasswordModal}
+          animationType="slide"
+          onRequestClose={() => setShowPasswordModal(false)}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Heading style={styles.modalTitle}>Enter Password</Heading>
+              <Input borderColor="#D2B48C" borderWidth={2} borderRadius={20}>
+                <InputField
+                  style={styles.input}
+                  placeholderTextColor={'#D2B48C'}
+                  placeholder="Password"
+                  value={password}
+                  onChangeText={text => {
+                    setPassword(text);
+                    if (text) {
+                      setPasswordError('');
+                    }
+                  }}
+                  secureTextEntry={!showPassword} // Toggle secureTextEntry based on showPassword state
+                />
+                <Button
+                  backgroundColor="#FFFF"
+                  onPress={togglePasswordVisibility}>
+                  <ButtonIcon color='#D2B48C' as={showPassword ? Eye : EyeOff} />
+                </Button>
+              </Input>
+
+              {passwordError ? (
+                <Text style={styles.errorText}>{passwordError}</Text>
+              ) : null}
+              <Box
+                flexDirection="row"
+                justifyContent="space-between"
+                marginTop={20}>
+                <Button
+                  backgroundColor="#D66B00"
+                  onPress={() => {
+                    const decryptedKey = handleDecryptPrivateKey();
+                    if (decryptedKey) {
+                      handleSendTransaction();
+                    }
+                  }}>
+                  <ButtonText color="#FFFF">Submit</ButtonText>
+                </Button>
+                <Button
+                  backgroundColor="#D66B00"
+                  onPress={() => setShowPasswordModal(false)}>
+                  <ButtonText color="#FFFF">Cancel</ButtonText>
+                </Button>
+              </Box>
+            </View>
+          </View>
+        </Modal>
       </ImageBackground>
     </Box>
   );
@@ -306,6 +391,29 @@ const styles = StyleSheet.create({
   transactionHash: {
     marginTop: 5,
     fontFamily: 'Courier New',
+  },
+  approvedText: {
+    color: 'green',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 10,
+    width: '80%',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#D66B00',
+    marginBottom: 20,
   },
 });
 

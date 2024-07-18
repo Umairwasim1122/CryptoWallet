@@ -29,7 +29,7 @@ const Home = () => {
   const Password = useSelector(state => state.wallet.Userpassword);
   const [balance, setBalance] = useState('Loading...');
   const [address, setAddress] = useState('');
-
+console.log(Password)
   const sendButton = () => {
     navigation.navigate('Send');
   };
@@ -58,9 +58,10 @@ const Home = () => {
         },
       );
       const ethBalance = parseInt(response.data.result, 16) / 1e18; // Convert from wei to ETH
-      setBalance(`${ethBalance} ETH`);
-      dispatch(setWalletBalance(`${ethBalance} ETH`)); // Dispatch action to set balance in Redux store
-      console.log('balance ', balance);
+      const formattedBalance = ethBalance.toFixed(5); // Format balance to 3 decimal points
+      setBalance(`${formattedBalance} ETH`);
+      dispatch(setWalletBalance(`${formattedBalance} ETH`)); // Dispatch action to set balance in Redux store
+      console.log('balance ', formattedBalance);
     } catch (error) {
       console.error('Error fetching balance:', error);
       if (error.response) {
@@ -69,7 +70,7 @@ const Home = () => {
       }
     }
   };
-
+  
   useEffect(() => {
     const decryptedAddress = decryptData(encryptedAddress, Password);
     setAddress(decryptedAddress);

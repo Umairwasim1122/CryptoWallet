@@ -90,6 +90,14 @@ android {
             keyPassword 'android'
         }
     }
+    signingConfigs {
+    release {
+      storeFile file('TestUmair.keystore')
+      storePassword 'Umair123'
+      keyAlias 'UmairTest'
+      keyPassword 'Umair123'
+    }
+  }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug

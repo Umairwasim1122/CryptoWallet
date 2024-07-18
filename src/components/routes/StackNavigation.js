@@ -11,6 +11,7 @@ import VerifyCode from '../../screens/authentication/verification/VerifyCode';
 import Home from '../../screens/dashboard/Home/Home';
 import Receive from '../../screens/dashboard/Home/Receive';
 import Send from '../../screens/dashboard/Home/Send';
+import RestoreAccount from '../../screens/authentication/login/RestoreAccount';
 const Stack = createStackNavigator();
 
 function MyStack() {
@@ -24,6 +25,7 @@ function MyStack() {
       <Stack.Screen name="BottomTabs" component={BottomTabNavigator} />
       <Stack.Screen name="verifycode" component={VerifyCode} />
       <Stack.Screen name="Restore" component={Restore}/>
+      <Stack.Screen name="RestoreAccount" component={RestoreAccount}/>
       <Stack.Screen name="Receive" component={Receive}/>
       <Stack.Screen name="Send" component={Send}/>
     </Stack.Navigator>
