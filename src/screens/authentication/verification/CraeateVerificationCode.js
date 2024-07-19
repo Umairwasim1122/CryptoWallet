@@ -17,7 +17,7 @@ import {
   FONT_SIZE,
 } from '../../../buisnessLogics/utils/helpers';
 import {useNavigation, useRoute} from '@react-navigation/native';
-import {ArrowLeft, ArrowRight, Copy} from 'lucide-react-native';
+import {ArrowLeft, ArrowRight, Copy,ClipboardCheck} from 'lucide-react-native';
 import {useSelector, useDispatch} from 'react-redux';
 import {
   clearTransactions,
@@ -41,7 +41,7 @@ const Verification = () => {
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(true);
   const [restoring, setRestoring] = useState(false);
-
+  const [icon, setIcon] = useState(Copy); // State for icon
   useEffect(() => {
     const initializeWallet = async () => {
       try {
@@ -63,11 +63,13 @@ const Verification = () => {
   const handleBackButton = () => {
     navigation.navigate('Signup');
   };
-
   const handleCopyToClipboard = () => {
     Clipboard.setString(mnemonic);
+    setIcon(ClipboardCheck); // Change icon to ClipboardCheck
+    setTimeout(() => {
+      setIcon(Copy); // Reset icon to Copy after 2 seconds
+    }, 2000);
   };
-
   const handleNextButton = async () => {
     setRestoring(true); // Set restoring to true after 1 second delay
     setTimeout(async () => {
@@ -153,14 +155,19 @@ const Verification = () => {
             ))
           )}
         </Box>
-        <Box style={styles.copyButtonContainer}>
-          <Button
-            size="xs"
-            onPress={handleCopyToClipboard}
-            style={styles.copyButton}>
-            <ButtonIcon as={Copy} color="#FFF" />
-          </Button>
-        </Box>
+        <Box alignItems="center" marginTop={20}>
+            <Button
+              size="xs"
+              onPress={handleCopyToClipboard}
+              style={{
+                backgroundColor: '#D66B00',
+                borderRadius: 10,
+                paddingHorizontal: 20,
+                paddingVertical: 10,
+              }}>
+              <ButtonIcon size={'lg'} as={icon} color="#FFF" />
+            </Button>
+          </Box>
         <Box style={styles.nextButtonContainer}>
           {restoring ? (
             <Spinner size="sm" color="#D66B00" />
