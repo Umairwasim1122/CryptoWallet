@@ -120,6 +120,7 @@ const SendTransaction = () => {
   };
 
   const handleSendTransaction = async () => {
+    setShowPasswordModal(false);
     try {
       setLoading(true);
       const decryptedKey = handleDecryptPrivateKey();
@@ -310,7 +311,10 @@ const SendTransaction = () => {
                 <Button
                   backgroundColor="#FFFF"
                   onPress={togglePasswordVisibility}>
-                  <ButtonIcon color='#D2B48C' as={showPassword ? Eye : EyeOff} />
+                  <ButtonIcon
+                    color="#D2B48C"
+                    as={showPassword ? Eye : EyeOff}
+                  />
                 </Button>
               </Input>
 

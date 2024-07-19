@@ -68,38 +68,43 @@ const Verification = () => {
   };
 
   const handleNextButton = async () => {
-    setRestoring(true);
-    try {
-      // Generate wallet data
-      const {mnemonic, privateKey, address} = await generateWallet();
-      console.log('Wallet Generated');
-
-      // // Encrypt data
-      const encryptedMnemonic = CryptoJS.AES.encrypt(
-        mnemonic,
-        Password,
-      ).toString();
-      const encryptedPrivateKey = CryptoJS.AES.encrypt(
-        privateKey,
-        Password,
-      ).toString();
-      const encryptedAddress = CryptoJS.AES.encrypt(
-        address,
-        Password,
-      ).toString();
-
-      // // Dispatch encrypted data to Redux
-      dispatch(setUserAddress(encryptedAddress));
-      dispatch(setUserMnemonics(encryptedMnemonic));
-      dispatch(setUserPrivateKey(encryptedPrivateKey));
-      dispatch(clearTransactions());
-      navigation.navigate('BottomTabs');
-    } catch (error) {
-      console.error(error.message);
-    } finally {
-      setRestoring(false);
-    }
+    setRestoring(true); // Set restoring to true after 1 second delay
+    setTimeout(async () => {
+     
+      try {
+        // Generate wallet data
+        const {mnemonic, privateKey, address} = await generateWallet();
+        console.log('Wallet Generated');
+  
+        // Encrypt data
+        const encryptedMnemonic = CryptoJS.AES.encrypt(
+          mnemonic,
+          Password,
+        ).toString();
+        const encryptedPrivateKey = CryptoJS.AES.encrypt(
+          privateKey,
+          Password,
+        ).toString();
+        const encryptedAddress = CryptoJS.AES.encrypt(
+          address,
+          Password,
+        ).toString();
+  
+        // Dispatch encrypted data to Redux
+        dispatch(setUserAddress(encryptedAddress));
+        dispatch(setUserMnemonics(encryptedMnemonic));
+        dispatch(setUserPrivateKey(encryptedPrivateKey));
+        dispatch(clearTransactions());
+        navigation.navigate('BottomTabs');
+      } catch (error) {
+        console.error(error.message);
+      } finally {
+        setRestoring(false); // Set restoring to false after operation completes
+        setLoading(false); // Set loading to false after operation completes
+      }
+    }, 1000); // 1 second delay
   };
+  
   // const decryptData = (encryptedData, password) => {
   //   const bytes = CryptoJS.AES.decrypt(encryptedData, password);
   //   return bytes.toString(CryptoJS.enc.Utf8);
@@ -142,7 +147,7 @@ const Verification = () => {
           ) : (
             numberedMnemonic.map((word, index) => (
               <Box key={index} style={styles.gridItem}>
-                <Text>{word}</Text>
+                <Text style={{color:"#000000"}}>{word}</Text>
               </Box>
             ))
           )}
@@ -157,7 +162,7 @@ const Verification = () => {
         </Box>
         <Box style={styles.nextButtonContainer}>
           {restoring ? (
-            <Spinner size="lg" color="#D66B00" />
+            <Spinner size="sm" color="#D66B00" />
           ) : (
             <Button
               backgroundColor="#562B00"
@@ -242,6 +247,5 @@ const styles = StyleSheet.create({
     left: WIDTH_BASE_RATIO(300),
     paddingHorizontal: '5%',
     justifyContent: 'center',
-    alignItems: 'flex-end',
   },
 });

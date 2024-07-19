@@ -77,32 +77,33 @@ const Restore = () => {
   };
 
   const handleSavePassword = newPassword => {
-    setLoading(true);
     setModalVisible(false);
-    setImmediate(() => {
+    setLoading(true); // Set loading to true to indicate start of operation
+  
+    setTimeout(() => {
       try {
         console.log('Mnemonics:', mnemonics);
         const wallet = ethers.Wallet.fromPhrase(mnemonics);
-
+  
         const encryptedAddress = encryptData(wallet.address, newPassword);
         const encryptedPrivateKey = encryptData(wallet.privateKey, newPassword);
         const encryptedMnemonics = encryptData(mnemonics, newPassword);
-
+  
         dispatch(setUserAddress(encryptedAddress));
         dispatch(setUserPrivateKey(encryptedPrivateKey));
         dispatch(setUserMnemonics(encryptedMnemonics));
-        dispatch(setUserPassword(newPassword)); // Save new password to Redux
-
+        dispatch(setUserPassword(newPassword)); 
+  
         // Navigate to Home screen
         navigation.navigate('BottomTabs');
       } catch (error) {
         console.error('Error restoring wallet:', error.message);
       } finally {
-        setLoading(false);
+        setLoading(false); // Set loading to false after operation completes
       }
-    });
+    }, 1000); // Delay of 1 second
   };
-
+  
   return (
     <Box style={{flex: 1}}>
       <ImageBackground
