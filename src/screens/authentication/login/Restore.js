@@ -6,6 +6,8 @@ import {
   setUserPrivateKey,
   setUserMnemonics,
   setUserPassword,
+  setLoggedIn,
+  setName,
 } from '../../../buisnessLogics/redux/slice/Walletdata';
 import {Alert, StyleSheet, Text} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -29,6 +31,8 @@ import 'react-native-get-random-values';
 import PasswordModal from '../../../components/common/PasswordModel'; // Make sure the import path is correct
 
 const Restore = () => {
+  const isLoggedIn = useSelector(state => state.wallet.loggedIn);
+  console.log(isLoggedIn);
   const [mnemonics, setMnemonics] = useState('');
   const [error, setError] = useState('');
   const dispatch = useDispatch();
@@ -76,7 +80,7 @@ const Restore = () => {
     setLoading(false);
   };
 
-  const handleSavePassword = newPassword => {
+  const handleSavePassword = (newPassword, uniqueName) => {
     setModalVisible(false);
     setLoading(true); // Set loading to true to indicate start of operation
   
@@ -92,8 +96,9 @@ const Restore = () => {
         dispatch(setUserAddress(encryptedAddress));
         dispatch(setUserPrivateKey(encryptedPrivateKey));
         dispatch(setUserMnemonics(encryptedMnemonics));
-        dispatch(setUserPassword(newPassword)); 
-  
+        dispatch(setUserPassword(newPassword));
+        dispatch(setName(uniqueName)); // Dispatch unique name to Redux
+        dispatch(setLoggedIn(true));
         // Navigate to Home screen
         navigation.navigate('BottomTabs');
       } catch (error) {
@@ -104,6 +109,7 @@ const Restore = () => {
     }, 1000); // Delay of 1 second
   };
   
+
   return (
     <Box style={{flex: 1}}>
       <ImageBackground
@@ -156,7 +162,7 @@ const Restore = () => {
           setModalVisible(false);
           setLoading(false);
         }}
-        onSave={handleSavePassword}
+        onSave={(password, name) => handleSavePassword(password, name)}
         loading={loading} // Pass the loading state
       />
     </Box>

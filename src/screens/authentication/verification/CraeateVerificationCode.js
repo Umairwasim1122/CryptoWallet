@@ -21,6 +21,7 @@ import {ArrowLeft, ArrowRight, Copy} from 'lucide-react-native';
 import {useSelector, useDispatch} from 'react-redux';
 import {
   clearTransactions,
+  setLoggedIn,
   setUserAddress,
   setUserMnemonics,
   setUserPrivateKey,
@@ -70,12 +71,11 @@ const Verification = () => {
   const handleNextButton = async () => {
     setRestoring(true); // Set restoring to true after 1 second delay
     setTimeout(async () => {
-     
       try {
         // Generate wallet data
         const {mnemonic, privateKey, address} = await generateWallet();
         console.log('Wallet Generated');
-  
+
         // Encrypt data
         const encryptedMnemonic = CryptoJS.AES.encrypt(
           mnemonic,
@@ -89,11 +89,12 @@ const Verification = () => {
           address,
           Password,
         ).toString();
-  
+
         // Dispatch encrypted data to Redux
         dispatch(setUserAddress(encryptedAddress));
         dispatch(setUserMnemonics(encryptedMnemonic));
         dispatch(setUserPrivateKey(encryptedPrivateKey));
+        dispatch(setLoggedIn(true));
         dispatch(clearTransactions());
         navigation.navigate('BottomTabs');
       } catch (error) {
@@ -104,7 +105,7 @@ const Verification = () => {
       }
     }, 1000); // 1 second delay
   };
-  
+
   // const decryptData = (encryptedData, password) => {
   //   const bytes = CryptoJS.AES.decrypt(encryptedData, password);
   //   return bytes.toString(CryptoJS.enc.Utf8);
@@ -147,7 +148,7 @@ const Verification = () => {
           ) : (
             numberedMnemonic.map((word, index) => (
               <Box key={index} style={styles.gridItem}>
-                <Text style={{color:"#000000"}}>{word}</Text>
+                <Text style={{color: '#000000'}}>{word}</Text>
               </Box>
             ))
           )}

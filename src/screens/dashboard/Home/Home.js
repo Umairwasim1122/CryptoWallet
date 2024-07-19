@@ -1,5 +1,5 @@
-import {StyleSheet, Text, View} from 'react-native';
-import React, {useState, useEffect} from 'react';
+import {StyleSheet, Text, View, BackHandler} from 'react-native';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   Box,
   Button,
@@ -13,7 +13,7 @@ import {
   WIDTH_BASE_RATIO,
   FONT_SIZE,
 } from '../../../buisnessLogics/utils/helpers';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import axios from 'axios';
 import {ArrowUpCircleIcon, ArrowDownCircleIcon} from 'lucide-react-native';
 import {useDispatch, useSelector} from 'react-redux';
@@ -29,7 +29,8 @@ const Home = () => {
   const Password = useSelector(state => state.wallet.Userpassword);
   const [balance, setBalance] = useState('Loading...');
   const [address, setAddress] = useState('');
-console.log(Password)
+  console.log(Password);
+
   const sendButton = () => {
     navigation.navigate('Send');
   };
@@ -70,12 +71,26 @@ console.log(Password)
       }
     }
   };
-  
+
   useEffect(() => {
     const decryptedAddress = decryptData(encryptedAddress, Password);
     setAddress(decryptedAddress);
     fetchBalance(decryptedAddress); // Fetch balance on component mount
   }, [encryptedAddress, Password]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        // Prevent default behavior of going back
+        return true;
+      };
+
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () =>
+        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    }, []),
+  );
 
   return (
     <Box style={{flex: 1}}>

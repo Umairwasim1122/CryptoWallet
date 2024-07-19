@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, FlatList, ImageBackground } from 'react-native';
+import { StyleSheet, Text, View, FlatList, ImageBackground, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Spinner, Heading } from '@gluestack-ui/themed';
 import EtherscanProviderCustom from '../../buisnessLogics/utils/etherscanProvider';
@@ -19,6 +19,13 @@ const TransactionHistory = () => {
   const decryptData = (data, password) => {
     const bytes = CryptoJS.AES.decrypt(data, password);
     return bytes.toString(CryptoJS.enc.Utf8);
+  };
+
+  // Function to handle item press
+  const handleItemPress = (transaction) => {
+    const { hash } = transaction;
+    const url = `https://${network}.etherscan.io/tx/${hash}`;
+    Linking.openURL(url).catch(err => console.error("Failed to open URL", err));
   };
 
   useEffect(() => {
@@ -59,7 +66,11 @@ const TransactionHistory = () => {
             data={transactions}
             keyExtractor={item => item.hash}
             renderItem={({ item }) => (
-              <TransactionItem transaction={item} address={decryptData(encryptedAddress, password)} />
+              <TransactionItem 
+                transaction={item} 
+                address={decryptData(encryptedAddress, password)} 
+                onPress={handleItemPress} 
+              />
             )}
           />
         )}

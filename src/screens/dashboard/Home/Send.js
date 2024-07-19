@@ -1,8 +1,8 @@
-import React, {useState, useEffect} from 'react';
-import {StyleSheet, Alert, Text, Modal, View} from 'react-native';
-import {useSelector, useDispatch} from 'react-redux';
-import {ethers} from 'ethers';
-import {ArrowLeft, Eye, ArrowRight, EyeOff} from 'lucide-react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Alert, Text, Modal, View } from 'react-native';
+import { useSelector, useDispatch } from 'react-redux';
+import { ethers } from 'ethers';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import {
   Box,
   Button,
@@ -13,10 +13,9 @@ import {
   InputField,
   Spinner,
   ButtonIcon,
-  Icon,
 } from '@gluestack-ui/themed';
-import {addTransaction} from '../../../buisnessLogics/redux/slice/Walletdata';
-import {useNavigation} from '@react-navigation/native';
+import { addTransaction } from '../../../buisnessLogics/redux/slice/Walletdata';
+import { useNavigation } from '@react-navigation/native';
 import {
   FONT_SIZE,
   HEIGHT_BASE_RATIO,
@@ -30,6 +29,7 @@ const SendTransaction = () => {
   const userPassword = useSelector(state => state.wallet.Userpassword);
   const dispatch = useDispatch();
   const navigation = useNavigation();
+
   const [toAddress, setToAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,24 +43,55 @@ const SendTransaction = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [transactionApproved, setTransactionApproved] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
   const infuraProjectId = '7aae9efdf2944cb2abd77d6d04a34b5b';
   const provider = new ethers.InfuraProvider('sepolia', infuraProjectId);
 
+  const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}$/;
+
   const validateInputs = () => {
     let valid = true;
+
     if (!toAddress) {
       setToAddressError('Recipient Address is required.');
+      valid = false;
+    } else if (!/^0x[a-fA-F0-9]{40}$/.test(toAddress)) {
+      setToAddressError('Invalid wallet address.');
       valid = false;
     } else {
       setToAddressError('');
     }
+
     if (!amount) {
       setAmountError('Amount is required.');
+      valid = false;
+    } else if (isNaN(amount) || amount <= 0) {
+      setAmountError('Enter a valid amount.');
+      valid = false;
+    } else if (parseFloat(amount) > balance) {
+      setAmountError('Insufficient balance.');
       valid = false;
     } else {
       setAmountError('');
     }
+
     return valid;
+  };
+
+  const validatePassword = () => {
+    if (!password) {
+      setPasswordError('Password is required.');
+      return false;
+    } else if (!passwordRegex.test(password)) {
+      setPasswordError('Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character.');
+      return false;
+    } else if (password !== userPassword) {
+      setPasswordError('Incorrect password.');
+      return false;
+    }
+
+    setPasswordError('');
+    return true;
   };
 
   const decryptPrivateKey = () => {
@@ -70,7 +101,7 @@ const SendTransaction = () => {
       setDecryptedPrivateKey(decryptedKey);
       return decryptedKey;
     } catch (error) {
-      setPasswordError('Incorrect password. Please try again.');
+      setPasswordError('Error decrypting private key.');
       console.error('Error decrypting private key:', error);
       return null;
     }
@@ -105,54 +136,52 @@ const SendTransaction = () => {
     await calculateGasFee();
     setShowPasswordModal(true);
   };
-
-  const handleDecryptPrivateKey = () => {
-    try {
-      const bytes = CryptoJS.AES.decrypt(privateKey, password);
-      const decryptedKey = bytes.toString(CryptoJS.enc.Utf8);
-      setDecryptedPrivateKey(decryptedKey);
-      return decryptedKey;
-    } catch (error) {
-      setPasswordError('Incorrect password. Please try again.');
-      console.error('Error decrypting private key:', error);
-      return null;
-    }
-  };
-
   const handleSendTransaction = async () => {
+    if (!validatePassword()) {
+        return;
+    }
+
+    const decryptedKey = decryptPrivateKey();
+    if (!decryptedKey) return;
+
     setShowPasswordModal(false);
     try {
-      setLoading(true);
-      const decryptedKey = handleDecryptPrivateKey();
-      if (!decryptedKey) return;
+        setLoading(true);
+        const wallet = new ethers.Wallet(decryptedPrivateKey, provider);
+        const amountWei = ethers.parseEther(amount);
+        const tx = {
+            to: toAddress,
+            value: amountWei,
+        };
+        const txResponse = await wallet.sendTransaction(tx);
+        setTransactionHash(txResponse.hash);
+        setTransactionApproved(true);
+        Alert.alert('Transaction Sent');
 
-      const wallet = new ethers.Wallet(decryptedKey, provider);
-      const amountWei = ethers.parseEther(amount);
-      const tx = {
-        to: toAddress,
-        value: amountWei,
-      };
-      const txResponse = await wallet.sendTransaction(tx);
-      setTransactionHash(txResponse.hash);
-      setTransactionApproved(true);
-      Alert.alert('Transaction Sent');
+        // Clear input fields after sending the transaction
+        setToAddress('');
+        setAmount('');
+        setPassword('');
+        setGasFee('');  // Optional: Clear gas fee if needed
 
-      const transactionDetails = [
-        amount,
-        toAddress,
-        gasFee,
-        new Date().toISOString(),
-      ];
+        // Add transaction details to the state
+        const transactionDetails = [
+            amount,
+            toAddress,
+            gasFee,
+            new Date().toISOString(),
+        ];
 
-      dispatch(addTransaction(transactionDetails));
+        dispatch(addTransaction(transactionDetails));
     } catch (error) {
-      Alert.alert('Failed to send transaction.');
-      console.error('Error sending transaction:', error);
+        Alert.alert('Failed to send transaction.');
+        console.error('Error sending transaction:', error);
     } finally {
-      setLoading(false);
-      setShowPasswordModal(false);
+        setLoading(false);
+        setShowPasswordModal(false);
     }
-  };
+};
+
 
   const backbutton = () => {
     navigation.navigate('BottomTabs');
@@ -173,65 +202,39 @@ const SendTransaction = () => {
   };
 
   return (
-    <Box style={{flex: 1}}>
+    <Box style={styles.container}>
       <ImageBackground
         source={require('../../../Assets/Images/background.jpg')}
-        style={{flex: 1}}>
+        style={styles.backgroundImage}
+      >
         {/* Header */}
-        <Box
-          style={{
-            height: HEIGHT_BASE_RATIO(80),
-            alignItems: 'center',
-            flexDirection: 'row',
-          }}>
-          <Box style={{flex: 0.3}}>
+        <Box style={styles.header}>
+          <Box style={styles.headerLeft}>
             <Button
               width={WIDTH_BASE_RATIO(80)}
               onPress={backbutton}
-              style={{backgroundColor: '#FFFF'}}>
+              style={styles.backButton}
+            >
               <ButtonIcon as={ArrowLeft} color="#D66B00" />
             </Button>
           </Box>
-          <Box
-            style={{
-              flex: 0.45,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-            <Heading
-              style={{fontSize: FONT_SIZE(20), fontWeight: '800'}}
-              color="#D66B00">
-              Currency App
-            </Heading>
+          <Box style={styles.headerCenter}>
+            <Heading style={styles.headerTitle}>Currency App</Heading>
           </Box>
         </Box>
-        <Box
-          style={{height: 100, justifyContent: 'center', alignItems: 'center'}}>
-          <Heading
-            style={{fontSize: FONT_SIZE(16), fontWeight: '800'}}
-            color="#D66B00">
-            Total balance:
-          </Heading>
-          <Heading
-            style={{fontSize: FONT_SIZE(20), fontWeight: '800'}}
-            color="#D66B00">
-            {balance}
-          </Heading>
+        <Box style={styles.balanceContainer}>
+          <Heading style={styles.balanceText}>Total balance:</Heading>
+          <Heading style={styles.balanceAmount}>{balance}</Heading>
         </Box>
-        <Box justifyContent="center" alignItems="center" marginTop={50}>
+        <Box style={styles.titleContainer}>
           <Heading style={styles.title}>Send Transaction</Heading>
         </Box>
-        <Box
-          height={200}
-          justifyContent="space-evenly"
-          width={'80%'}
-          marginHorizontal={'10%'}>
+        <Box style={styles.inputContainer}>
           <Input borderColor="#D2B48C" borderWidth={2} borderRadius={20}>
             <InputField
-              autoCapitalize="none"
               style={styles.input}
-              placeholder="Recipient Address"
               placeholderTextColor={'#D2B48C'}
+              placeholder="Recipient Address"
               value={toAddress}
               onChangeText={text => {
                 setToAddress(text);
@@ -267,14 +270,15 @@ const SendTransaction = () => {
         {gasFee !== '' && (
           <Text style={styles.gasFeeText}>Gas Fee: {gasFee} ETH</Text>
         )}
-        <Box alignItems="center" marginTop={50}>
+        <Box alignItems="center" marginTop={0}>
           {loading ? (
-            <Spinner></Spinner>
+            <Spinner />
           ) : (
             <Button
               backgroundColor="#D66B00"
               onPress={sendTransaction}
-              disabled={loading}>
+              disabled={loading}
+            >
               <ButtonText color="#FFFF">Send Coins</ButtonText>
             </Button>
           )}
@@ -290,7 +294,8 @@ const SendTransaction = () => {
           transparent={true}
           visible={showPasswordModal}
           animationType="slide"
-          onRequestClose={() => setShowPasswordModal(false)}>
+          onRequestClose={() => setShowPasswordModal(false)}
+        >
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
               <Heading style={styles.modalTitle}>Enter Password</Heading>
@@ -306,11 +311,12 @@ const SendTransaction = () => {
                       setPasswordError('');
                     }
                   }}
-                  secureTextEntry={!showPassword} // Toggle secureTextEntry based on showPassword state
+                  secureTextEntry={!showPassword}
                 />
                 <Button
                   backgroundColor="#FFFF"
-                  onPress={togglePasswordVisibility}>
+                  onPress={togglePasswordVisibility}
+                >
                   <ButtonIcon
                     color="#D2B48C"
                     as={showPassword ? Eye : EyeOff}
@@ -324,20 +330,18 @@ const SendTransaction = () => {
               <Box
                 flexDirection="row"
                 justifyContent="space-between"
-                marginTop={20}>
+                marginTop={20}
+              >
                 <Button
                   backgroundColor="#D66B00"
-                  onPress={() => {
-                    const decryptedKey = handleDecryptPrivateKey();
-                    if (decryptedKey) {
-                      handleSendTransaction();
-                    }
-                  }}>
+                  onPress={handleSendTransaction}
+                >
                   <ButtonText color="#FFFF">Submit</ButtonText>
                 </Button>
                 <Button
                   backgroundColor="#D66B00"
-                  onPress={() => setShowPasswordModal(false)}>
+                  onPress={() => setShowPasswordModal(false)}
+                >
                   <ButtonText color="#FFFF">Cancel</ButtonText>
                 </Button>
               </Box>
@@ -352,15 +356,62 @@ const SendTransaction = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+  },
+  backgroundImage: {
+    flex: 1,
+  },
+  header: {
+    height: HEIGHT_BASE_RATIO(80),
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  headerLeft: {
+    flex: 0.3,
+  },
+  backButton: {
+    backgroundColor: '#FFFF',
+  },
+  headerCenter: {
+    flex: 0.45,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: FONT_SIZE(20),
+    fontWeight: '800',
+    color: '#D66B00',
+  },
+  balanceContainer: {
+    height: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  balanceText: {
+    fontSize: FONT_SIZE(16),
+    fontWeight: '800',
+    color: '#D66B00',
+  },
+  balanceAmount: {
+    fontSize: FONT_SIZE(20),
+    fontWeight: '800',
+    color: '#D66B00',
+  },
+  titleContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 50,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 30,
     color: '#D66B00',
+  },
+  inputContainer: {
+    height: 150,
+    justifyContent: 'space-evenly',
+    width: '80%',
+    marginHorizontal: '10%',
   },
   input: {
     height: 40,
@@ -380,21 +431,6 @@ const styles = StyleSheet.create({
     margin: 40,
     marginBottom: 10,
     fontSize: 16,
-  },
-  loadingText: {
-    marginTop: 10,
-  },
-  transactionContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  transactionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  transactionHash: {
-    marginTop: 5,
-    fontFamily: 'Courier New',
   },
   approvedText: {
     color: 'green',

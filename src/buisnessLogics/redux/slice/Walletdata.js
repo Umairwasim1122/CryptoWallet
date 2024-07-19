@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
-
 const initialState = {
+  loggedIn: false,
   address: '',
   privateKey: '',
   mnemonics: '',
@@ -10,6 +10,7 @@ const initialState = {
   transactions: [],
 };
 
+// Reducers
 const WalletSlice = createSlice({
   name: 'Wallet',
   initialState,
@@ -38,8 +39,12 @@ const WalletSlice = createSlice({
     clearTransactions(state) {
       state.transactions = [];
     },
+    setLoggedIn(state, action) {
+      state.loggedIn = action.payload;
+    },
   },
 });
+
 
 export const {
   setUserAddress,
@@ -50,6 +55,7 @@ export const {
   clearTransactions,
   setName,
   setUserPassword,
+  setLoggedIn,
 } = WalletSlice.actions;
 
 export default WalletSlice.reducer;

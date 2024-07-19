@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -6,15 +6,15 @@ import {
   Heading,
   ImageBackground,
 } from '@gluestack-ui/themed';
-import {useSelector} from 'react-redux';
+import { useSelector } from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   HEIGHT_BASE_RATIO,
   WIDTH_BASE_RATIO,
   FONT_SIZE,
 } from '../../../buisnessLogics/utils/helpers';
-import {ArrowLeft, Copy} from 'lucide-react-native';
+import { ArrowLeft, Copy, ClipboardCheck } from 'lucide-react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import CryptoJS from 'crypto-js'; // Import CryptoJS for encryption/decryption
 
@@ -25,10 +25,12 @@ const Receive = () => {
   const password = useSelector(state => state.wallet.Userpassword); // Retrieve password/key used for encryption
 
   const [decryptedAddress, setDecryptedAddress] = useState('');
+  const [icon, setIcon] = useState(Copy); // State for icon
 
   useEffect(() => {
     decryptAddress();
   }, []);
+
   const decryptAddress = () => {
     try {
       const bytes = CryptoJS.AES.decrypt(encryptedAddress, password);
@@ -47,13 +49,18 @@ const Receive = () => {
 
   const copyToClipboard = () => {
     Clipboard.setString(decryptedAddress); // Copy decrypted address to clipboard
+
+    setIcon(ClipboardCheck); // Change icon to ClipboardCheck
+    setTimeout(() => {
+      setIcon(Copy); // Reset icon to Copy after 2 seconds
+    }, 2000);
   };
 
   return (
-    <Box style={{flex: 1}}>
+    <Box style={{ flex: 1 }}>
       <ImageBackground
         source={require('../../../Assets/Images/background.jpg')}
-        style={{flex: 1}}>
+        style={{ flex: 1 }}>
         {/* Header */}
         <Box
           style={{
@@ -61,11 +68,11 @@ const Receive = () => {
             alignItems: 'center',
             flexDirection: 'row',
           }}>
-          <Box style={{flex: 0.3}}>
+          <Box style={{ flex: 0.3 }}>
             <Button
               width={WIDTH_BASE_RATIO(80)}
               onPress={backbutton}
-              style={{backgroundColor: '#FFFF'}}>
+              style={{ backgroundColor: '#FFFF' }}>
               <ButtonIcon as={ArrowLeft} color="#D66B00" />
             </Button>
           </Box>
@@ -76,7 +83,7 @@ const Receive = () => {
               alignItems: 'center',
             }}>
             <Heading
-              style={{fontSize: FONT_SIZE(20), fontWeight: '800'}}
+              style={{ fontSize: FONT_SIZE(20), fontWeight: '800' }}
               color="#D66B00">
               Currency App
             </Heading>
@@ -91,17 +98,17 @@ const Receive = () => {
             alignItems: 'center',
           }}>
           <Box>
-            <Heading style={{fontSize: FONT_SIZE(18), color: '#D66B00'}}>
+            <Heading style={{ fontSize: FONT_SIZE(18), color: '#D66B00' }}>
               Total Balance
             </Heading>
           </Box>
           <Box>
-            <Heading style={{fontSize: FONT_SIZE(25), color: '#D66B00'}}>
+            <Heading style={{ fontSize: FONT_SIZE(25), color: '#D66B00' }}>
               {balance}
             </Heading>
           </Box>
           <Box marginTop={30}>
-            <Heading style={{fontSize: FONT_SIZE(18), color: '#D66B00'}}>
+            <Heading style={{ fontSize: FONT_SIZE(18), color: '#D66B00' }}>
               Receive your Coins
             </Heading>
           </Box>
@@ -109,7 +116,7 @@ const Receive = () => {
 
         {/* QR Code */}
         <Box marginHorizontal={WIDTH_BASE_RATIO(30)}>
-          <Heading style={{fontSize: FONT_SIZE(14), color: '#D66B00'}}>
+          <Heading style={{ fontSize: FONT_SIZE(14), color: '#D66B00' }}>
             Scan the QR code to receive coins
           </Heading>
 
@@ -127,7 +134,7 @@ const Receive = () => {
               />
             </Box>
           ) : (
-            <Heading style={{fontSize: FONT_SIZE(14), color: '#D66B00'}}>
+            <Heading style={{ fontSize: FONT_SIZE(14), color: '#D66B00' }}>
               Decrypting address...
             </Heading>
           )}
@@ -161,7 +168,7 @@ const Receive = () => {
                 paddingHorizontal: 20,
                 paddingVertical: 10,
               }}>
-              <ButtonIcon as={Copy} color="#FFF" />
+              <ButtonIcon size={'lg'} as={icon} color="#FFF" />
             </Button>
           </Box>
         </Box>
