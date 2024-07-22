@@ -51,7 +51,8 @@ const SendTransaction = () => {
 
   const validateInputs = () => {
     let valid = true;
-
+  
+    // Validate recipient address
     if (!toAddress) {
       setToAddressError('Recipient Address is required.');
       valid = false;
@@ -61,23 +62,34 @@ const SendTransaction = () => {
     } else {
       setToAddressError('');
     }
-
+  
+    // Validate amount
     if (!amount) {
       setAmountError('Amount is required.');
       valid = false;
-    } else if (isNaN(amount) || amount <= 0) {
-      setAmountError('Enter a valid amount.');
-      valid = false;
-    } else if (parseFloat(amount) > balance) {
-      setAmountError('Insufficient balance.');
-      valid = false;
     } else {
-      setAmountError('');
+      const amountNum = parseFloat(amount);
+      const balanceNum = parseFloat(balance);
+  
+      if (isNaN(amountNum) || amountNum <= 0) {
+        setAmountError('Enter a valid amount.');
+        valid = false;
+      } else if (amountNum > balanceNum) {
+        setAmountError('Insufficient balance.');
+        valid = false;
+      } else {
+        setAmountError('');
+      }
     }
-
+  
+    // Log the current state for debugging
+    console.log('To Address:', toAddress);
+    console.log('Amount:', amount);
+    console.log('Balance:', balance);
+  
     return valid;
   };
-
+  
   const validatePassword = () => {
     if (!password) {
       setPasswordError('Password is required.');

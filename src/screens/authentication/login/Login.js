@@ -11,13 +11,14 @@ import {
   Input,
   InputField,
 } from '@gluestack-ui/themed';
-import {Eye, EyeOff,ArrowRight} from 'lucide-react-native';
+import {Eye, EyeOff, ArrowRight} from 'lucide-react-native';
 
 import {
   HEIGHT_BASE_RATIO,
   WIDTH_BASE_RATIO,
   FONT_SIZE,
 } from '../../../buisnessLogics/utils/helpers';
+
 const Login = () => {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -58,12 +59,12 @@ const Login = () => {
 
   const handleUsernameChange = text => {
     setUsername(text);
-    setErrors(prev => ({...prev, username: ''}));
+    setErrors(prev => ({...prev, username: '', login: ''})); // Clear username error and login error
   };
 
   const handlePasswordChange = text => {
     setPassword(text);
-    setErrors(prev => ({...prev, password: ''}));
+    setErrors(prev => ({...prev, password: '', login: ''})); // Clear password error and login error
   };
 
   return (
@@ -128,7 +129,7 @@ const Login = () => {
 
         <Text style={styles.forgotPassword}>Forgot Password?</Text>
         <Button
-          onPress={() => navigation.navigate('RestoreAccount')}
+          onPress={() => navigation.navigate('Restore')}
           style={styles.restoreButton}>
           <ButtonText>Restore Account</ButtonText>
         </Button>
