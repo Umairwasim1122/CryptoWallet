@@ -10,6 +10,7 @@ import {
   ImageBackground,
   Input,
   InputField,
+  Box,
 } from '@gluestack-ui/themed';
 import {Eye, EyeOff, ArrowRight} from 'lucide-react-native';
 
@@ -122,17 +123,33 @@ const Login = () => {
           )}
           {errors.login && <Text style={styles.errorText}>{errors.login}</Text>}
         </View>
-
         <Button onPress={handleLogin} style={styles.loginButton}>
           <ButtonIcon color="#FFFF" as={ArrowRight} />
         </Button>
 
         <Text style={styles.forgotPassword}>Forgot Password?</Text>
-        <Button
-          onPress={() => navigation.navigate('Restore')}
-          style={styles.restoreButton}>
-          <ButtonText>Restore Account</ButtonText>
-        </Button>
+        <Box
+          width={'100%'}
+          justifyContent="space-evenly"
+          marginTop={50}
+          flexDirection="row">
+          <Button
+            height={50}
+            alignItems="center"
+            width={'40%'}
+            onPress={() => navigation.navigate('Restore')}
+            style={styles.restoreButton}>
+            <ButtonText textAlign="center">Restore Account</ButtonText>
+          </Button>
+          <Button
+            height={50}
+            alignItems="center"
+            width={'40%'}
+            onPress={() => navigation.navigate('CreateAccount')}
+            style={styles.restoreButton}>
+            <ButtonText textAlign="center">Crete a new account </ButtonText>
+          </Button>
+        </Box>
       </View>
     </ImageBackground>
   );
