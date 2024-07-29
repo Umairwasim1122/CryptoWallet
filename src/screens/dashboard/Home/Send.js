@@ -70,9 +70,13 @@ const SendTransaction = () => {
     } else {
       const amountNum = parseFloat(amount);
       const balanceNum = parseFloat(balance);
-  
-      if (isNaN(amountNum) || amountNum <= 0) {
+      const regex = /^\d+(\.\d+)?$/; // Regex to check valid number with at most one decimal point
+    
+      if (!regex.test(amount)) {
         setAmountError('Enter a valid amount.');
+        valid = false;
+      } else if (amountNum <= 0) {
+        setAmountError('Enter a positive amount.');
         valid = false;
       } else if (amountNum > balanceNum) {
         setAmountError('Insufficient balance.');
@@ -81,7 +85,6 @@ const SendTransaction = () => {
         setAmountError('');
       }
     }
-  
     // Log the current state for debugging
     console.log('To Address:', toAddress);
     console.log('Amount:', amount);
