@@ -201,7 +201,7 @@ const Home = () => {
           </Button>
         </Box>
         <Box marginTop={30} justifyContent="center" alignItems="center">
-          <Heading color="#D66B00">Sent History</Heading>
+          <Heading color="#D66B00">Sent history</Heading>
         </Box>
         <TransactionHistory />
       </ImageBackground>
