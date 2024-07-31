@@ -14,6 +14,8 @@ import Receive from '../../screens/dashboard/Home/Receive';
 import Send from '../../screens/dashboard/Home/Send';
 import RestoreAccount from '../../screens/authentication/login/RestoreAccount';
 import Login from '../../screens/authentication/login/Login';
+import ImportToken from '../../screens/dashboard/Home/ImportToken';
+import SendToken from '../../screens/dashboard/Home/SendToken';
 
 const Stack = createStackNavigator();
 
@@ -30,6 +32,8 @@ function MyStack() {
       <Stack.Screen name="SecureAccount" component={SecureAccount} />
       <Stack.Screen name="Create2fa" component={Verification} />
       <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="ImportTokens" component={ImportToken} />
+      <Stack.Screen name="SendTokens" component={SendToken} />
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="BottomTabs" component={BottomTabNavigator} />
       <Stack.Screen name="verifycode" component={VerifyCode} />

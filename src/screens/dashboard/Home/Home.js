@@ -20,8 +20,14 @@ import {useDispatch, useSelector} from 'react-redux';
 import {setWalletBalance} from '../../../buisnessLogics/redux/slice/Walletdata';
 import TransactionHistory from '../../../components/common/Transactionistory';
 import CryptoJS from 'crypto-js';
-
+import {ethers} from 'ethers';
+import {COntract_ABI} from '../../../../ERC20_ABi';
+import TokenTransactions from '../../../components/common/TokenTransacrtions';
 const Home = () => {
+  const provider = new ethers.JsonRpcProvider(
+    'https://sepolia.infura.io/v3/7aae9efdf2944cb2abd77d6d04a34b5b',
+  );
+
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const username = useSelector(state => state.wallet.Name);
@@ -29,15 +35,37 @@ const Home = () => {
   const Password = useSelector(state => state.wallet.Userpassword);
   const [balance, setBalance] = useState('Loading...');
   const [address, setAddress] = useState('');
-  console.log(Password);
+  const [selectToken, setSetlectToken] = useState(false);
+  const [selectCoins, setSelectCoins] = useState(false);
 
-  const sendButton = () => {
-    navigation.navigate('Send');
+  const handlePress = action => {
+    switch (action) {
+      case 'sendETH':
+        navigation.navigate('Send');
+        break;
+      case 'receiveETH':
+        console.log('Receive Button pressed');
+        navigation.navigate('Receive');
+        break;
+      case 'importToken':
+        navigation.navigate('ImportTokens');
+        break;
+      case 'sendToken':
+        navigation.navigate('SendTokens');
+        break;
+      default:
+        break;
+    }
   };
 
-  const receiveButton = () => {
-    console.log('Receive Button pressed');
-    navigation.navigate('Receive', {});
+  const SelectTokens = () => {
+    setSetlectToken(!selectToken);
+    setSelectCoins(false);
+  };
+
+  const selectCoin = () => {
+    setSelectCoins(!selectCoins);
+    setSetlectToken(false);
   };
 
   // Function to decrypt data
@@ -47,7 +75,7 @@ const Home = () => {
   };
 
   // Function to fetch balance
-  const fetchBalance = async (decryptedAddress) => {
+  const fetchBalance = async decryptedAddress => {
     try {
       const response = await axios.post(
         'https://sepolia.infura.io/v3/7aae9efdf2944cb2abd77d6d04a34b5b',
@@ -59,9 +87,9 @@ const Home = () => {
         },
       );
       const ethBalance = parseInt(response.data.result, 16) / 1e18; // Convert from wei to ETH
-      const formattedBalance = ethBalance.toFixed(5); // Format balance to 3 decimal points
+      const formattedBalance = ethBalance.toFixed(5); // Format balance to 5 decimal points
       setBalance(`${formattedBalance} ETH`);
-      dispatch(setWalletBalance(`${formattedBalance} ETH`)); // Dispatch action to set balance in Redux store
+      dispatch(setWalletBalance(`${formattedBalance}`)); // Dispatch action to set balance in Redux store
       console.log('balance ', formattedBalance);
     } catch (error) {
       console.error('Error fetching balance:', error);
@@ -72,16 +100,30 @@ const Home = () => {
     }
   };
 
+  // Function to fetch and log contract information
+  const fetchContractInfo = async () => {
+    try {
+      const name = await contract.name();
+      const symbol = await contract.symbol();
+      const totalSupply = await contract.totalSupply();
+      console.log('Contract Name:', name);
+      console.log('Contract Symbol:', symbol);
+      console.log('Total Supply:', totalSupply.toString());
+    } catch (error) {
+      console.error('Error fetching contract info:', error);
+    }
+  };
+
   useEffect(() => {
     const decryptedAddress = decryptData(encryptedAddress, Password);
     setAddress(decryptedAddress);
     fetchBalance(decryptedAddress); // Fetch balance on component mount
+    fetchContractInfo(); // Fetch contract information on component mount
   }, [encryptedAddress, Password]);
 
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
-        // Prevent default behavior of going back
         return true;
       };
 
@@ -91,6 +133,10 @@ const Home = () => {
         BackHandler.removeEventListener('hardwareBackPress', onBackPress);
     }, []),
   );
+
+  const contractAddress = '0x54dfa4f16797570b993667453b8c1b65e89d1ce8';
+
+  const contract = new ethers.Contract(contractAddress, COntract_ABI, provider);
 
   return (
     <Box style={{flex: 1}}>
@@ -177,33 +223,85 @@ const Home = () => {
         <Box
           style={{
             flexDirection: 'row',
+            alignItems: 'center',
+            width: '100%',
             justifyContent: 'space-evenly',
-            marginTop: 20,
           }}>
           <Button
-            onPress={sendButton}
+            width={'40%'}
+            onPress={SelectTokens}
             backgroundColor="#D66B00"
             size="xl"
-            paddingTop={8}
             flexDirection="column">
-            <ButtonIcon as={ArrowUpCircleIcon} />
-            <ButtonText fontSize={FONT_SIZE(14)}>Send</ButtonText>
+            <ButtonText fontSize={FONT_SIZE(20)}>Tokens</ButtonText>
           </Button>
           <Button
-            onPress={receiveButton}
+            width={'40%'}
+            onPress={selectCoin}
             size="xl"
             variant="solid"
             backgroundColor="#D66B00"
-            paddingTop={8}
             flexDirection="column">
-            <ButtonIcon as={ArrowDownCircleIcon} />
-            <ButtonText fontSize={FONT_SIZE(14)}>Receive</ButtonText>
+            <ButtonText fontSize={FONT_SIZE(20)}>Coins</ButtonText>
           </Button>
         </Box>
-        <Box marginTop={30} justifyContent="center" alignItems="center">
-          <Heading color="#D66B00">Sent history</Heading>
+        <Box
+          style={{
+            justifyContent: 'space-evenly',
+            margin: 20,
+            height: 130,
+          }}>
+          {selectCoins && (
+            <>
+              <Button
+                onPress={() => handlePress('sendETH')}
+                backgroundColor="#f5c39e"
+                size="xl"
+                variant="link"
+                justifyContent="flex-start">
+                <Text paddingHorizontal={10} fontSize={14} color="#D66B00">
+                  Send ETH
+                </Text>
+              </Button>
+              <Button
+                onPress={() => handlePress('receiveETH')}
+                backgroundColor="#f5c39e"
+                size="xl"
+                variant="link"
+                justifyContent="flex-start">
+                <Text paddingHorizontal={10} fontSize={14} color="#D66B00">
+                  Receive ETH
+                </Text>
+              </Button>
+            </>
+          )}
+
+          {selectToken && (
+            <>
+              <Button
+                onPress={() => handlePress('importToken')}
+                backgroundColor="#f5c39e"
+                size="xl"
+                variant="link"
+                justifyContent="flex-start">
+                <Text paddingHorizontal={10} fontSize={14} color="#D66B00">
+                  Import Tokens
+                </Text>
+              </Button>
+              <Button
+                onPress={() => handlePress('sendToken')}
+                backgroundColor="#f5c39e"
+                size="xl"
+                variant="link"
+                justifyContent="flex-start">
+                <Text paddingHorizontal={10} fontSize={14} color="#D66B00">
+                  Send Tokens
+                </Text>
+              </Button>
+            </>
+          )}
+        
         </Box>
-        <TransactionHistory />
       </ImageBackground>
     </Box>
   );

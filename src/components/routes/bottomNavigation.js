@@ -7,7 +7,7 @@ import { House,Plus,List, } from 'lucide-react-native';
 
 // Import your screens
 import Home from '../../screens/dashboard/Home/Home';
-import TransactionHistory from '../../screens/List/TransactionHistory';
+import TransactionHistory from '../../screens/dashboard/List/TransactionHistory';
 import Profile from '../../screens/Profile/Profile';
 const Tab = createBottomTabNavigator();
 

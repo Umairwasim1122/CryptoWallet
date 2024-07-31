@@ -3,7 +3,7 @@ import { persistStore, persistReducer } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Use AsyncStorage for React Native
 import walletReducer from "./slice/Walletdata";
 import { combineReducers } from 'redux';
-
+import TokenSlice from './slice/TokenSlice';
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
@@ -11,6 +11,7 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
   wallet: walletReducer,
+  Token: TokenSlice,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
