@@ -1,12 +1,5 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  ActivityIndicator,
-  Modal,
-  TouchableOpacity,
-} from 'react-native';
-import React, {useState, useEffect} from 'react';
+import {StyleSheet, Text, View, ActivityIndicator, Modal} from 'react-native';
+import React, {useState} from 'react';
 import {
   Box,
   Heading,
@@ -15,16 +8,25 @@ import {
   Button,
   InputField,
 } from '@gluestack-ui/themed';
+import {useNavigation} from '@react-navigation/native';
 import {ethers} from 'ethers';
 import {FONT_SIZE} from '../../../buisnessLogics/utils/helpers';
+import {useDispatch, useSelector} from 'react-redux';
+import {addToken} from '../../../buisnessLogics/redux/slice/TokenSlice';
 
 const ImportToken = () => {
   const [contractAddress, setContractAddress] = useState('');
   const [symbol, setSymbol] = useState('');
   const [decimals, setDecimals] = useState('');
+  const [totalSupply, setTotalSupply] = useState('');
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false); // For the full-screen overlay
   const [isButtonLoading, setIsButtonLoading] = useState(false); // For the button spinner
+  const [showTokenFields, setShowTokenFields] = useState(false);
+  const [showNextButton, setShowNextButton] = useState(false);
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
+  const importedTokens = useSelector(state => state.tokens);
 
   const contractABI = [
     {
@@ -45,6 +47,13 @@ const ImportToken = () => {
       inputs: [],
       name: 'decimals',
       outputs: [{internalType: 'uint8', name: '', type: 'uint8'}],
+      stateMutability: 'view',
+      type: 'function',
+    },
+    {
+      inputs: [],
+      name: 'totalSupply',
+      outputs: [{internalType: 'uint256', name: '', type: 'uint256'}],
       stateMutability: 'view',
       type: 'function',
     },
@@ -84,10 +93,60 @@ const ImportToken = () => {
     return !addressError && !symbolError && !decimalsError;
   };
 
+  const checkIfTokenExists = address => {
+    return importedTokens.some(token => token.contractAddress === address);
+  };
+
+  const handleContractAddressChange = async address => {
+    setContractAddress(address);
+    setErrors({...errors, contractAddress: null});
+    setShowNextButton(false);
+
+    const addressError = validateContractAddress(address);
+    if (addressError) {
+      setErrors({...errors, contractAddress: addressError});
+      return;
+    }
+
+    if (checkIfTokenExists(address)) {
+      setErrors({...errors, contractAddress: 'Contract token already exists'});
+      return;
+    }
+
+    setShowNextButton(true);
+
+    setIsLoading(true);
+    try {
+      const provider = new ethers.JsonRpcProvider(
+        'https://sepolia.infura.io/v3/7aae9efdf2944cb2abd77d6d04a34b5b',
+      );
+      const tokenContract = new ethers.Contract(address, contractABI, provider);
+
+      const [tokenSymbol, tokenDecimals, tokenTotalSupply] = await Promise.all([
+        tokenContract.symbol(),
+        tokenContract.decimals(),
+        tokenContract.totalSupply(),
+      ]);
+
+      setSymbol(tokenSymbol);
+      setDecimals(tokenDecimals.toString());
+      setTotalSupply(ethers.formatUnits(tokenTotalSupply, tokenDecimals));
+      setShowTokenFields(true);
+    } catch (error) {
+      console.error('Error fetching token details:', error);
+      setErrors({
+        ...errors,
+        contractAddress: 'Failed to retrieve token details',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const importToken = async () => {
     if (!validateFields()) return;
 
-    setIsButtonLoading(true); // Show spinner on the button
+    setIsButtonLoading(true);
 
     try {
       const provider = new ethers.JsonRpcProvider(
@@ -99,17 +158,32 @@ const ImportToken = () => {
         provider,
       );
 
-      // Fetching data from the contract
-      const [tokenSymbol, tokenDecimals] = await Promise.all([
+      const [tokenSymbol, tokenDecimals, tokenTotalSupply] = await Promise.all([
         tokenContract.symbol(),
         tokenContract.decimals(),
+        tokenContract.totalSupply(),
       ]);
 
-      setSymbol(tokenSymbol);
-      setDecimals(tokenDecimals.toString());
-
-      console.log('Token Symbol:', tokenSymbol);
-      console.log('Token Decimals:', tokenDecimals);
+      if (
+        tokenSymbol &&
+        tokenDecimals !== undefined &&
+        tokenTotalSupply !== undefined
+      ) {
+        setSymbol(tokenSymbol);
+        setDecimals(tokenDecimals.toString());
+        setTotalSupply(ethers.formatUnits(tokenTotalSupply, tokenDecimals));
+        dispatch(
+          addToken({
+            contractAddress,
+            symbol: tokenSymbol,
+            decimals: tokenDecimals.toString(),
+            totalSupply: ethers.formatUnits(tokenTotalSupply, tokenDecimals),
+          }),
+        );
+        navigation.navigate('BottomTabs');
+      } else {
+        console.error('Failed to retrieve token details');
+      }
     } catch (error) {
       console.error('Error importing token:', error);
     } finally {
@@ -120,40 +194,10 @@ const ImportToken = () => {
 
   const handleChange = (field, value) => {
     setErrors({...errors, [field]: null});
-    if (field === 'contractAddress') setContractAddress(value);
+    if (field === 'contractAddress') handleContractAddressChange(value);
     if (field === 'symbol') setSymbol(value);
     if (field === 'decimals') setDecimals(value);
   };
-
-  useEffect(() => {
-    if (validateContractAddress(contractAddress) === null) {
-      setIsLoading(true); // Show the full-screen overlay while fetching token details
-      (async () => {
-        try {
-          const provider = new ethers.JsonRpcProvider(
-            'https://sepolia.infura.io/v3/7aae9efdf2944cb2abd77d6d04a34b5b',
-          );
-          const tokenContract = new ethers.Contract(
-            contractAddress,
-            contractABI,
-            provider,
-          );
-
-          const [tokenSymbol, tokenDecimals] = await Promise.all([
-            tokenContract.symbol(),
-            tokenContract.decimals(),
-          ]);
-
-          setSymbol(tokenSymbol);
-          setDecimals(tokenDecimals.toString());
-        } catch (error) {
-          console.error('Error fetching token details:', error);
-        } finally {
-          setIsLoading(false); // Hide the full-screen overlay
-        }
-      })();
-    }
-  }, [contractAddress]);
 
   return (
     <View style={styles.container}>
@@ -176,43 +220,75 @@ const ImportToken = () => {
               <Text style={styles.error}>{errors.contractAddress}</Text>
             )}
 
-            <Input style={styles.input}>
-              <InputField
-                style={styles.TextInput}
-                placeholder="Symbol"
-                placeholderTextColor={'#D2B48C'}
-                value={symbol}
-                onChangeText={text => handleChange('symbol', text)}
-                editable={!isLoading}
-              />
-            </Input>
-            {errors.symbol && <Text style={styles.error}>{errors.symbol}</Text>}
-            <Input style={styles.input}>
-              <InputField
-                style={styles.TextInput}
-                placeholder="Decimals"
-                placeholderTextColor={'#D2B48C'}
-                keyboardType="numeric"
-                value={decimals}
-                onChangeText={text => handleChange('decimals', text)}
-                editable={!isLoading}
-              />
-            </Input>
-            {errors.decimals && (
-              <Text style={styles.error}>{errors.decimals}</Text>
+            {showTokenFields && (
+              <>
+                <Box height={200} justifyContent="space-evenly">
+                  <Input style={styles.input}>
+                    <InputField
+                      style={styles.TextInput}
+                      placeholder="Symbol"
+                      placeholderTextColor={'#D2B48C'}
+                      value={symbol}
+                      onChangeText={text => handleChange('symbol', text)}
+                      editable={!isLoading}
+                    />
+                  </Input>
+                  {errors.symbol && (
+                    <Text style={styles.error}>{errors.symbol}</Text>
+                  )}
+                  <Input style={styles.input}>
+                    <InputField
+                      style={styles.TextInput}
+                      placeholder="Decimals"
+                      placeholderTextColor={'#D2B48C'}
+                      keyboardType="numeric"
+                      value={decimals}
+                      onChangeText={text => handleChange('decimals', text)}
+                      editable={!isLoading}
+                    />
+                  </Input>
+                  {errors.decimals && (
+                    <Text style={styles.error}>{errors.decimals}</Text>
+                  )}
+                  <Input style={styles.input}>
+                    <InputField
+                      style={styles.TextInput}
+                      placeholder="Total Supply"
+                      placeholderTextColor={'#D2B48C'}
+                      value={totalSupply}
+                      editable={false}
+                    />
+                  </Input>
+                </Box>
+              </>
             )}
           </Box>
 
-          <Button
-            backgroundColor="#D66B00"
-            onPress={importToken}
-            disabled={isLoading}>
-            {isButtonLoading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Import Token</Text>
-            )}
-          </Button>
+          {/* {showNextButton && (
+            <Button
+              backgroundColor="#D66B00"
+              onPress={handleContractAddressChange}
+              disabled={isLoading}>
+              {isButtonLoading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Next</Text>
+              )}
+            </Button>
+          )} */}
+
+          {showTokenFields && (
+            <Button
+              backgroundColor="#D66B00"
+              onPress={importToken}
+              disabled={isLoading}>
+              {isButtonLoading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Import Token</Text>
+              )}
+            </Button>
+          )}
         </Box>
       </ImageBackground>
 
@@ -243,7 +319,6 @@ const styles = StyleSheet.create({
   box: {
     flex: 1,
     padding: 20,
-    justifyContent: 'center',
   },
   heading: {
     fontSize: 24,
@@ -252,7 +327,6 @@ const styles = StyleSheet.create({
     color: '#D66B00',
   },
   inputContainer: {
-    height: 250,
     justifyContent: 'space-evenly',
     marginBottom: 20,
   },

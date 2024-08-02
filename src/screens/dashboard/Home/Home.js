@@ -6,7 +6,7 @@ import {
   ButtonIcon,
   Heading,
   ImageBackground,
-  ButtonText,
+  ButtonText,AddIcon
 } from '@gluestack-ui/themed';
 import {
   HEIGHT_BASE_RATIO,
@@ -23,6 +23,7 @@ import CryptoJS from 'crypto-js';
 import {ethers} from 'ethers';
 import {COntract_ABI} from '../../../../ERC20_ABi';
 import TokenTransactions from '../../../components/common/TokenTransacrtions';
+import TokenListScreen from './TokenList';
 const Home = () => {
   const provider = new ethers.JsonRpcProvider(
     'https://sepolia.infura.io/v3/7aae9efdf2944cb2abd77d6d04a34b5b',
@@ -35,7 +36,7 @@ const Home = () => {
   const Password = useSelector(state => state.wallet.Userpassword);
   const [balance, setBalance] = useState('Loading...');
   const [address, setAddress] = useState('');
-  const [selectToken, setSetlectToken] = useState(false);
+  const [selectToken, setSetlectToken] = useState(true);
   const [selectCoins, setSelectCoins] = useState(false);
 
   const handlePress = action => {
@@ -101,24 +102,24 @@ const Home = () => {
   };
 
   // Function to fetch and log contract information
-  const fetchContractInfo = async () => {
-    try {
-      const name = await contract.name();
-      const symbol = await contract.symbol();
-      const totalSupply = await contract.totalSupply();
-      console.log('Contract Name:', name);
-      console.log('Contract Symbol:', symbol);
-      console.log('Total Supply:', totalSupply.toString());
-    } catch (error) {
-      console.error('Error fetching contract info:', error);
-    }
-  };
+  // const fetchContractInfo = async () => {
+  //   try {
+  //     const name = await contract.name();
+  //     const symbol = await contract.symbol();
+  //     const totalSupply = await contract.totalSupply();
+  //     console.log('Contract Name:', name);
+  //     console.log('Contract Symbol:', symbol);
+  //     console.log('Total Supply:', totalSupply.toString());
+  //   } catch (error) {
+  //     console.error('Error fetching contract info:', error);
+  //   }
+  // };
 
   useEffect(() => {
     const decryptedAddress = decryptData(encryptedAddress, Password);
     setAddress(decryptedAddress);
     fetchBalance(decryptedAddress); // Fetch balance on component mount
-    fetchContractInfo(); // Fetch contract information on component mount
+  //  fetchContractInfo(); // Fetch contract information on component mount
   }, [encryptedAddress, Password]);
 
   useFocusEffect(
@@ -134,9 +135,9 @@ const Home = () => {
     }, []),
   );
 
-  const contractAddress = '0x54dfa4f16797570b993667453b8c1b65e89d1ce8';
+  // const contractAddress = '0x54dfa4f16797570b993667453b8c1b65e89d1ce8';
 
-  const contract = new ethers.Contract(contractAddress, COntract_ABI, provider);
+  // const contract = new ethers.Contract(contractAddress, COntract_ABI, provider);
 
   return (
     <Box style={{flex: 1}}>
@@ -245,50 +246,55 @@ const Home = () => {
             <ButtonText fontSize={FONT_SIZE(20)}>Coins</ButtonText>
           </Button>
         </Box>
-        <Box
-          style={{
-            justifyContent: 'space-evenly',
-            margin: 20,
-            height: 130,
-          }}>
+        <Box height={110} marginVertical={20}>
           {selectCoins && (
             <>
-              <Button
-                onPress={() => handlePress('sendETH')}
-                backgroundColor="#f5c39e"
-                size="xl"
-                variant="link"
-                justifyContent="flex-start">
-                <Text paddingHorizontal={10} fontSize={14} color="#D66B00">
-                  Send ETH
-                </Text>
-              </Button>
-              <Button
-                onPress={() => handlePress('receiveETH')}
-                backgroundColor="#f5c39e"
-                size="xl"
-                variant="link"
-                justifyContent="flex-start">
-                <Text paddingHorizontal={10} fontSize={14} color="#D66B00">
-                  Receive ETH
-                </Text>
-              </Button>
+              <Box
+                flexDirection="row"
+                height={110}
+                justifyContent="space-evenly">
+                <Button
+                  onPress={() => handlePress('sendETH')}
+                  backgroundColor="#f5c39e"
+                  size="xl"
+                  variant="link"
+                  justifyContent="flex-start">
+                  <Text paddingHorizontal={10} fontSize={14} color="#D66B00">
+                    Send ETH
+                  </Text>
+                </Button>
+                <Button
+                  onPress={() => handlePress('receiveETH')}
+                  backgroundColor="#f5c39e"
+                  size="xl"
+                  variant="link"
+                  justifyContent="flex-start">
+                  <Text paddingHorizontal={10} fontSize={14} color="#D66B00">
+                    Receive ETH
+                  </Text>
+                </Button>
+              </Box>
             </>
           )}
 
           {selectToken && (
             <>
-              <Button
-                onPress={() => handlePress('importToken')}
-                backgroundColor="#f5c39e"
-                size="xl"
-                variant="link"
-                justifyContent="flex-start">
-                <Text paddingHorizontal={10} fontSize={14} color="#D66B00">
-                  Import Tokens
-                </Text>
-              </Button>
-              <Button
+              <Box height={300}>
+                <TokenListScreen></TokenListScreen>
+              </Box>
+              <Box>
+                <Button marginHorizontal={20} paddingHorizontal={20}
+                  onPress={() => handlePress('importToken')}
+                  backgroundColor="#f5c39e"
+                  size="xl"
+                  variant="link"
+                  justifyContent="flex-start">
+                    <ButtonIcon color='#D66B00' as={AddIcon}></ButtonIcon>
+                  <ButtonText paddingHorizontal={10} fontSize={14} color="#D66B00">
+                    Import Tokens
+                  </ButtonText>
+                </Button>
+                {/* <Button
                 onPress={() => handlePress('sendToken')}
                 backgroundColor="#f5c39e"
                 size="xl"
@@ -297,10 +303,10 @@ const Home = () => {
                 <Text paddingHorizontal={10} fontSize={14} color="#D66B00">
                   Send Tokens
                 </Text>
-              </Button>
+              </Button> */}
+              </Box>
             </>
           )}
-        
         </Box>
       </ImageBackground>
     </Box>

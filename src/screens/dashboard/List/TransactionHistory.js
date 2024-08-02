@@ -1,7 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, FlatList, ImageBackground, Linking, TouchableOpacity } from 'react-native';
-import { useSelector } from 'react-redux';
-import { Spinner, Heading } from '@gluestack-ui/themed';
+import React, {useEffect, useState} from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  ImageBackground,
+  Linking,
+  TouchableOpacity,
+} from 'react-native';
+import {useSelector} from 'react-redux';
+import {Spinner, Heading} from '@gluestack-ui/themed';
 import EtherscanProviderCustom from '../../../buisnessLogics/utils/etherscanProvider';
 import TransactionItem from '../../../components/common/TransactionItem';
 import CryptoJS from 'crypto-js';
@@ -17,33 +25,30 @@ const TransactionHistory = () => {
   const encryptedAddress = useSelector(state => state.wallet.address);
   const password = useSelector(state => state.wallet.Userpassword);
 
-  // Function to decrypt the address
   const decryptData = (data, password) => {
     const bytes = CryptoJS.AES.decrypt(data, password);
     return bytes.toString(CryptoJS.enc.Utf8);
   };
-
-  // Function to handle item press
-  const handleItemPress = (transaction) => {
-    const { hash } = transaction;
+  const handleItemPress = transaction => {
+    const {hash} = transaction;
     const url = `https://${network}.etherscan.io/tx/${hash}`;
-    Linking.openURL(url).catch(err => console.error("Failed to open URL", err));
+    Linking.openURL(url).catch(err => console.error('Failed to open URL', err));
   };
 
-  // Function to filter transactions based on the selected filter
   const filterTransactions = (type, transactions) => {
     let filtered;
     if (type === 'eth') {
       filtered = transactions.filter(tx => tx.value > 0);
     } else if (type === 'tokens') {
-      filtered = transactions.filter(tx => tx.input && tx.input.startsWith('0xa9059cbb'));
+      filtered = transactions.filter(
+        tx => tx.input && tx.input.startsWith('0xa9059cbb'),
+      );
     } else {
       filtered = transactions;
     }
     setFilteredTransactions(filtered);
   };
 
-  // Function to fetch transactions
   const fetchTransactions = async () => {
     setLoading(true);
     try {
@@ -54,7 +59,7 @@ const TransactionHistory = () => {
       const history = await etherscanProvider.getHistory(decryptedAddress);
       history.sort((a, b) => b.timeStamp - a.timeStamp);
       setAllTransactions(history);
-      filterTransactions(filter, history); // Apply the current filter after fetching
+      filterTransactions(filter, history);
     } catch (error) {
       console.error(error);
     } finally {
@@ -62,43 +67,40 @@ const TransactionHistory = () => {
     }
   };
 
-  // Initial fetch
   useEffect(() => {
     fetchTransactions();
   }, [encryptedAddress, password]);
 
-  // Refetch when filter changes
   useEffect(() => {
     if (!loading) {
-      fetchTransactions(); // Refetch transactions when filter changes
+      fetchTransactions();
     }
   }, [filter]);
 
   return (
     <ImageBackground
-      style={{ flex: 1 }}
-      source={require('../../../Assets/Images/background.jpg')}
-    >
+      style={{flex: 1}}
+      source={require('../../../Assets/Images/background.jpg')}>
       <View style={styles.container}>
         <Text style={styles.title}>Transaction History</Text>
-        
+
         <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={[styles.button, filter === 'all' && styles.selectedButton]} 
-            onPress={() => setFilter('all')}
-          >
+          <TouchableOpacity
+            style={[styles.button, filter === 'all' && styles.selectedButton]}
+            onPress={() => setFilter('all')}>
             <Text style={styles.buttonText}>All </Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.button, filter === 'eth' && styles.selectedButton]} 
-            onPress={() => setFilter('eth')}
-          >
+          <TouchableOpacity
+            style={[styles.button, filter === 'eth' && styles.selectedButton]}
+            onPress={() => setFilter('eth')}>
             <Text style={styles.buttonText}>ETH </Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.button, filter === 'tokens' && styles.selectedButton]} 
-            onPress={() => setFilter('tokens')}
-          >
+          <TouchableOpacity
+            style={[
+              styles.button,
+              filter === 'tokens' && styles.selectedButton,
+            ]}
+            onPress={() => setFilter('tokens')}>
             <Text style={styles.buttonText}>Token</Text>
           </TouchableOpacity>
         </View>
@@ -106,18 +108,22 @@ const TransactionHistory = () => {
         {loading ? (
           <Spinner marginTop={40} />
         ) : filteredTransactions.length === 0 ? (
-          <Heading textAlign="center" marginTop={40} color="#D2B48C" fontSize={14}>
+          <Heading
+            textAlign="center"
+            marginTop={40}
+            color="#D2B48C"
+            fontSize={14}>
             No Transactions found
           </Heading>
         ) : (
           <FlatList
             data={filteredTransactions}
             keyExtractor={item => item.hash}
-            renderItem={({ item }) => (
-              <TransactionItem 
-                transaction={item} 
-                address={decryptData(encryptedAddress, password)} 
-                onPress={handleItemPress} 
+            renderItem={({item}) => (
+              <TransactionItem
+                transaction={item}
+                address={decryptData(encryptedAddress, password)}
+                onPress={handleItemPress}
               />
             )}
           />
@@ -145,10 +151,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     marginBottom: 16,
   },
-  button: { 
-    width:80,
-    alignItems:'center',
-    justifyContent:'center',
+  button: {
+    width: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#D66B00',
     padding: 10,
     borderRadius: 5,

@@ -16,6 +16,7 @@ import RestoreAccount from '../../screens/authentication/login/RestoreAccount';
 import Login from '../../screens/authentication/login/Login';
 import ImportToken from '../../screens/dashboard/Home/ImportToken';
 import SendToken from '../../screens/dashboard/Home/SendToken';
+import TokenListScreen from '../../screens/dashboard/Home/TokenList';
 
 const Stack = createStackNavigator();
 
@@ -34,6 +35,7 @@ function MyStack() {
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="ImportTokens" component={ImportToken} />
       <Stack.Screen name="SendTokens" component={SendToken} />
+      <Stack.Screen name="ToeknList" component={TokenListScreen} />
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="BottomTabs" component={BottomTabNavigator} />
       <Stack.Screen name="verifycode" component={VerifyCode} />
