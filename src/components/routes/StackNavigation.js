@@ -17,6 +17,8 @@ import Login from '../../screens/authentication/login/Login';
 import ImportToken from '../../screens/dashboard/Home/ImportToken';
 import SendToken from '../../screens/dashboard/Home/SendToken';
 import TokenListScreen from '../../screens/dashboard/Home/TokenList';
+import ViewNFT from '../../screens/dashboard/Home/NFTs/ViewNFT';
+import ImportNft from '../../screens/dashboard/Home/NFTs/ImportNft';
 
 const Stack = createStackNavigator();
 
@@ -43,6 +45,8 @@ function MyStack() {
       <Stack.Screen name="RestoreAccount" component={RestoreAccount} />
       <Stack.Screen name="Receive" component={Receive} />
       <Stack.Screen name="Send" component={Send} />
+      <Stack.Screen name="VIewNFT" component={ViewNFT} />
+      <Stack.Screen name="ImportNFT" component={ImportNft} />
     </Stack.Navigator>
   );
 }

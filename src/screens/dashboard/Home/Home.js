@@ -6,7 +6,8 @@ import {
   ButtonIcon,
   Heading,
   ImageBackground,
-  ButtonText,AddIcon
+  ButtonText,
+  AddIcon,
 } from '@gluestack-ui/themed';
 import {
   HEIGHT_BASE_RATIO,
@@ -38,6 +39,7 @@ const Home = () => {
   const [address, setAddress] = useState('');
   const [selectToken, setSetlectToken] = useState(true);
   const [selectCoins, setSelectCoins] = useState(false);
+  const [selectNFT, setSelectNFT] = useState(false);
 
   const handlePress = action => {
     switch (action) {
@@ -54,6 +56,12 @@ const Home = () => {
       case 'sendToken':
         navigation.navigate('SendTokens');
         break;
+        case 'importNFT':
+          navigation.navigate('ImportNFT');
+          break;
+        case 'ViewNFT':
+          navigation.navigate('VIewNFT');
+          break;
       default:
         break;
     }
@@ -62,13 +70,19 @@ const Home = () => {
   const SelectTokens = () => {
     setSetlectToken(!selectToken);
     setSelectCoins(false);
+    setSelectNFT(false)
   };
 
   const selectCoin = () => {
     setSelectCoins(!selectCoins);
     setSetlectToken(false);
+    setSelectNFT(false)
   };
-
+  const selectNFTs = () => {
+    setSelectNFT(!selectNFT);
+    setSelectCoins(false);
+    setSetlectToken(false);
+  };
   // Function to decrypt data
   const decryptData = (encryptedData, password) => {
     const bytes = CryptoJS.AES.decrypt(encryptedData, password);
@@ -119,7 +133,7 @@ const Home = () => {
     const decryptedAddress = decryptData(encryptedAddress, Password);
     setAddress(decryptedAddress);
     fetchBalance(decryptedAddress); // Fetch balance on component mount
-  //  fetchContractInfo(); // Fetch contract information on component mount
+    //  fetchContractInfo(); // Fetch contract information on component mount
   }, [encryptedAddress, Password]);
 
   useFocusEffect(
@@ -229,7 +243,7 @@ const Home = () => {
             justifyContent: 'space-evenly',
           }}>
           <Button
-            width={'40%'}
+            width={'30%'}
             onPress={SelectTokens}
             backgroundColor="#D66B00"
             size="xl"
@@ -237,7 +251,16 @@ const Home = () => {
             <ButtonText fontSize={FONT_SIZE(20)}>Tokens</ButtonText>
           </Button>
           <Button
-            width={'40%'}
+            width={'30%'}
+            onPress={selectNFTs}
+            size="xl"
+            variant="solid"
+            backgroundColor="#D66B00"
+            flexDirection="column">
+            <ButtonText fontSize={FONT_SIZE(20)}>NFT</ButtonText>
+          </Button>
+          <Button
+            width={'30%'}
             onPress={selectCoin}
             size="xl"
             variant="solid"
@@ -276,21 +299,54 @@ const Home = () => {
               </Box>
             </>
           )}
-
+{selectNFT && (
+            <>
+              <Box
+                flexDirection="row"
+                height={110}
+                justifyContent="space-evenly">
+                <Button
+                  onPress={() => handlePress('ViewNFT')}
+                  backgroundColor="#f5c39e"
+                  size="xl"
+                  variant="link"
+                  justifyContent="flex-start">
+                  <Text paddingHorizontal={10} fontSize={14} color="#D66B00">
+                    View NFT
+                  </Text>
+                </Button>
+                <Button
+                  onPress={() => handlePress('importNFT')}
+                  backgroundColor="#f5c39e"
+                  size="xl"
+                  variant="link"
+                  justifyContent="flex-start">
+                  <Text paddingHorizontal={10} fontSize={14} color="#D66B00">
+                    Import ETH
+                  </Text>
+                </Button>
+              </Box>
+            </>
+          )}
           {selectToken && (
             <>
               <Box height={300}>
                 <TokenListScreen></TokenListScreen>
               </Box>
               <Box>
-                <Button marginHorizontal={20} paddingHorizontal={20}
+                <Button
+                  marginHorizontal={20}
+                  paddingHorizontal={20}
                   onPress={() => handlePress('importToken')}
                   backgroundColor="#f5c39e"
                   size="xl"
                   variant="link"
                   justifyContent="flex-start">
-                    <ButtonIcon color='#D66B00' as={AddIcon}></ButtonIcon>
-                  <ButtonText paddingHorizontal={10} fontSize={14} color="#D66B00">
+                  <ButtonIcon color="#D66B00" as={AddIcon}></ButtonIcon>
+                  <ButtonText
+                    paddingHorizontal={10}
+                    fontSize={14}
+                    color="#D66B00">
                     Import Tokens
                   </ButtonText>
                 </Button>
