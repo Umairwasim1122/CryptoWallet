@@ -21,7 +21,7 @@ const TransactionHistory = () => {
   const [allTransactions, setAllTransactions] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // 'all', 'eth', 'tokens'
+  const [filter, setFilter] = useState('all'); // 'all', 'eth', 'tokens', 'nft'
   const encryptedAddress = useSelector(state => state.wallet.address);
   const password = useSelector(state => state.wallet.Userpassword);
 
@@ -29,6 +29,7 @@ const TransactionHistory = () => {
     const bytes = CryptoJS.AES.decrypt(data, password);
     return bytes.toString(CryptoJS.enc.Utf8);
   };
+
   const handleItemPress = transaction => {
     const {hash} = transaction;
     const url = `https://${network}.etherscan.io/tx/${hash}`;
@@ -37,18 +38,30 @@ const TransactionHistory = () => {
 
   const filterTransactions = (type, transactions) => {
     let filtered;
-    if (type === 'eth') {
-      filtered = transactions.filter(tx => tx.value > 0);
-    } else if (type === 'tokens') {
-      filtered = transactions.filter(
-        tx => tx.input && tx.input.startsWith('0xa9059cbb'),
-      );
-    } else {
-      filtered = transactions;
+  
+    switch (type) {
+      case 'eth':
+        filtered = transactions.filter(tx => tx.value > 0);
+        break;
+      case 'tokens':
+        filtered = transactions.filter(tx => tx.input && tx.input.startsWith('0xa9059cbb'));
+        break;
+      case 'nft':
+        filtered = transactions.filter(tx => tx.input && (tx.input.startsWith('0x23b872dd') || tx.input.startsWith('0x42842e0e')));
+        break;
+      case 'all':
+        // Include all types of transactions including NFTs
+        filtered = transactions.filter(tx => tx.value > 0 || 
+          (tx.input && (tx.input.startsWith('0xa9059cbb') || tx.input.startsWith('0x23b872dd') || tx.input.startsWith('0x42842e0e')))
+        );
+        break;
+      default:
+        filtered = transactions;
     }
+  
     setFilteredTransactions(filtered);
   };
-
+  
   const fetchTransactions = async () => {
     setLoading(true);
     try {
@@ -88,12 +101,12 @@ const TransactionHistory = () => {
           <TouchableOpacity
             style={[styles.button, filter === 'all' && styles.selectedButton]}
             onPress={() => setFilter('all')}>
-            <Text style={styles.buttonText}>All </Text>
+            <Text style={styles.buttonText}>All</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.button, filter === 'eth' && styles.selectedButton]}
             onPress={() => setFilter('eth')}>
-            <Text style={styles.buttonText}>ETH </Text>
+            <Text style={styles.buttonText}>ETH</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
@@ -102,6 +115,11 @@ const TransactionHistory = () => {
             ]}
             onPress={() => setFilter('tokens')}>
             <Text style={styles.buttonText}>Token</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, filter === 'nft' && styles.selectedButton]}
+            onPress={() => setFilter('nft')}>
+            <Text style={styles.buttonText}>NFT</Text>
           </TouchableOpacity>
         </View>
 

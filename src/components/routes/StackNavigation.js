@@ -19,6 +19,8 @@ import SendToken from '../../screens/dashboard/Home/SendToken';
 import TokenListScreen from '../../screens/dashboard/Home/TokenList';
 import ViewNFT from '../../screens/dashboard/Home/NFTs/ViewNFT';
 import ImportNft from '../../screens/dashboard/Home/NFTs/ImportNft';
+import NFTDetails from '../../screens/dashboard/Home/NFTs/NftDetails';
+import SendNFT from '../../screens/dashboard/Home/NFTs/SendNft';
 
 const Stack = createStackNavigator();
 
@@ -46,7 +48,9 @@ function MyStack() {
       <Stack.Screen name="Receive" component={Receive} />
       <Stack.Screen name="Send" component={Send} />
       <Stack.Screen name="VIewNFT" component={ViewNFT} />
+      <Stack.Screen name="NFTDetails" component={NFTDetails} />
       <Stack.Screen name="ImportNFT" component={ImportNft} />
+      <Stack.Screen name="SendNFT" component={SendNFT} />
     </Stack.Navigator>
   );
 }

@@ -11,7 +11,11 @@ import {
   Image,
   FlatList,
   Heading,
+  Button,
+  ButtonText,
 } from '@gluestack-ui/themed';
+import {useNavigation} from '@react-navigation/native'; // Import useNavigation
+
 const decryptData = (encryptedData, password) => {
   const bytes = CryptoJS.AES.decrypt(encryptedData, password);
   return bytes.toString(CryptoJS.enc.Utf8);
@@ -20,10 +24,12 @@ const decryptData = (encryptedData, password) => {
 const ViewNFT = () => {
   const [address, setAddress] = useState('');
   const [ownedNfts, setOwnedNfts] = useState([]);
-  const [loading, setLoading] = useState(true); // Added loading state
+  const [loading, setLoading] = useState(true);
   const encryptedAddress = useSelector(state => state.wallet.address);
   const Password = useSelector(state => state.wallet.Userpassword);
   const nfts = useSelector(state => state.nft.nfts);
+
+  const navigation = useNavigation(); // Initialize navigation
 
   useEffect(() => {
     const decryptedAddress = decryptData(encryptedAddress, Password);
@@ -50,7 +56,7 @@ const ViewNFT = () => {
     };
 
     const fetchOwnedNfts = async () => {
-      setLoading(true); // Set loading to true before fetching
+      setLoading(true);
       const ownedNfts = [];
       const tokenIds = new Set();
       for (const nft of nfts) {
@@ -63,13 +69,21 @@ const ViewNFT = () => {
         }
       }
       setOwnedNfts(ownedNfts);
-      setLoading(false); // Set loading to false after fetching
+      setLoading(false);
     };
 
     if (address) {
       fetchOwnedNfts();
     }
   }, [address, nfts]);
+
+  const handleViewPress = nft => {
+    navigation.navigate('NFTDetails', {nft}); // Navigate to NFTDetails screen
+  };
+
+  // const handleSendPress = nft => {
+  //   navigation.navigate('SendNFT', {contractAddress: nft.contractAddress});
+  // };
 
   const renderItem = ({item}) => (
     <View style={styles.card}>
@@ -80,6 +94,10 @@ const ViewNFT = () => {
       />
       <Text style={styles.metadataText}>Name: {item.metadata.name}</Text>
       <Text style={styles.metadataText}>ID: {item.tokenId}</Text>
+
+      <Button backgroundColor='#D66B00' marginVertical={10} width={"100%"} onPress={() => handleViewPress(item)}>
+        <ButtonText>View</ButtonText>
+      </Button>
     </View>
   );
 
@@ -91,17 +109,25 @@ const ViewNFT = () => {
         {loading ? (
           <ActivityIndicator
             size="large"
-            color="#0000ff"
+            color="#D66B00"
             style={styles.loader}
           />
+        ) : ownedNfts.length === 0 ? (
+          <Box justifyContent="center" alignItems="center">
+            <Heading marginVertical={20} color="#D66B00">
+              No NFTs exist in your wallet.
+            </Heading>
+          </Box>
         ) : (
           <Box justifyContent="center" alignItems="center">
-            <Heading marginVertical={20} color="#D66B00">My NFTs</Heading>
-
-            <FlatList 
+            <Heading marginVertical={20} color="#D66B00">
+              My NFTs
+            </Heading>
+            <FlatList
+              marginBottom={50}
               padding={20}
               data={ownedNfts}
-              keyExtractor={item => item.tokenId.toString()} // Use tokenId as key
+              keyExtractor={item => item.tokenId.toString()}
               renderItem={renderItem}
             />
           </Box>
@@ -119,6 +145,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   card: {
+    width: 300,
     marginBottom: 20,
     padding: 20,
     borderRadius: 10,

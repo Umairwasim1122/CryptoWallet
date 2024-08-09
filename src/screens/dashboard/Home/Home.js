@@ -56,12 +56,12 @@ const Home = () => {
       case 'sendToken':
         navigation.navigate('SendTokens');
         break;
-        case 'importNFT':
-          navigation.navigate('ImportNFT');
-          break;
-        case 'ViewNFT':
-          navigation.navigate('VIewNFT');
-          break;
+      case 'importNFT':
+        navigation.navigate('ImportNFT');
+        break;
+      case 'ViewNFT':
+        navigation.navigate('VIewNFT');
+        break;
       default:
         break;
     }
@@ -70,13 +70,13 @@ const Home = () => {
   const SelectTokens = () => {
     setSetlectToken(!selectToken);
     setSelectCoins(false);
-    setSelectNFT(false)
+    setSelectNFT(false);
   };
 
   const selectCoin = () => {
     setSelectCoins(!selectCoins);
     setSetlectToken(false);
-    setSelectNFT(false)
+    setSelectNFT(false);
   };
   const selectNFTs = () => {
     setSelectNFT(!selectNFT);
@@ -299,7 +299,7 @@ const Home = () => {
               </Box>
             </>
           )}
-{selectNFT && (
+          {selectNFT && (
             <>
               <Box
                 flexDirection="row"
@@ -322,7 +322,7 @@ const Home = () => {
                   variant="link"
                   justifyContent="flex-start">
                   <Text paddingHorizontal={10} fontSize={14} color="#D66B00">
-                    Import ETH
+                    Import NFT
                   </Text>
                 </Button>
               </Box>

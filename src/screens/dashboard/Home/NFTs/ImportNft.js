@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {StyleSheet, TextInput} from 'react-native';
+import {StyleSheet, TextInput, TouchableOpacity} from 'react-native';
 import {
   Box,
   Heading,
@@ -14,6 +14,7 @@ import {ethers} from 'ethers';
 import {useDispatch, useSelector} from 'react-redux';
 import {addNft} from '../../../../buisnessLogics/redux/slice/nftSlice';
 import CryptoJS from 'crypto-js';
+import {useNavigation} from '@react-navigation/native'; // Import useNavigation
 
 const ImportNft = () => {
   const [contractAddress, setContractAddress] = useState('');
@@ -44,20 +45,28 @@ const ImportNft = () => {
   const validateInputs = () => {
     let valid = true;
 
-    if (!ethers.isAddress(contractAddress)) {
-      setContractAddressError('Invalid contract address');
+    // Validate contract address
+    if (!contractAddress) {
+      setContractAddressError('Contract Address is required.');
+      valid = false;
+    } else if (!ethers.isAddress(contractAddress)) {
+      setContractAddressError('Invalid contract address.');
       valid = false;
     } else {
       setContractAddressError('');
     }
 
-    if (isNaN(tokenId) || tokenId.trim() === '') {
-      setTokenIdError('Invalid or empty token ID');
+    // Validate token ID
+    if (!tokenId) {
+      setTokenIdError('Token ID is required.');
+      valid = false;
+    } else if (isNaN(tokenId)) {
+      setTokenIdError('Token ID must be a number.');
       valid = false;
     } else {
       setTokenIdError('');
     }
-
+    
     return valid;
   };
 
@@ -101,6 +110,16 @@ const ImportNft = () => {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const navigation = useNavigation(); // Initialize navigation
+
+  const handleCardPress = () => {
+    if (nftMetadata) {
+      navigation.navigate('NFTDetails', {
+        nft: {contractAddress, tokenId, metadata: nftMetadata},
+      });
     }
   };
 
@@ -155,7 +174,7 @@ const ImportNft = () => {
           {loading && <Text style={styles.loadingText}>Loading...</Text>}
           {error && <Text style={styles.errorText}>{error}</Text>}
           {nftMetadata && (
-            <View style={styles.card}>
+            <TouchableOpacity style={styles.card} onPress={handleCardPress}>
               <Image
                 alt=""
                 style={styles.nftImage}
@@ -163,7 +182,7 @@ const ImportNft = () => {
               />
               <Text style={styles.metadataText}>Name: {nftMetadata.name}</Text>
               <Text style={styles.metadataText}>ID: {tokenId}</Text>
-            </View>
+            </TouchableOpacity>
           )}
         </View>
       </ImageBackground>
